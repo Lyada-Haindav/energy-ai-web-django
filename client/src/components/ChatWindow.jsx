@@ -47,25 +47,25 @@ export default function ChatWindow({ messages, isLoading, userName, workspaceMod
   }, [messages, isLoading]);
 
   return (
-    <section className="energy-chat-shell energy-panel energy-sheen animate-page-in relative flex min-h-0 flex-col rounded-none border-x-0 border-t-0 bg-[linear-gradient(180deg,rgba(5,8,14,0.98)_0%,rgba(6,11,18,0.96)_100%)] px-2 pb-1 pt-2 shadow-none sm:min-h-[280px] sm:rounded-[24px] sm:border sm:bg-[linear-gradient(160deg,rgba(12,16,23,0.84)_0%,rgba(12,20,31,0.8)_56%,rgba(14,19,29,0.78)_100%)] sm:p-2.5 sm:shadow-[0_28px_72px_-42px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.05)] lg:max-h-[calc(100vh-15.6rem)]">
-      <div className="absolute right-10 top-12 hidden h-28 w-28 rounded-full bg-[#8ce2cb]/14 blur-3xl sm:block" />
-      <div className="absolute bottom-10 left-8 hidden h-24 w-24 rounded-full bg-[#ff8b62]/12 blur-3xl sm:block" />
-      <div className="absolute right-[24%] top-[22%] hidden h-24 w-24 rounded-full bg-[#6db8ff]/10 blur-3xl animate-float-wide sm:block" />
+    <section className="energy-chat-shell energy-panel energy-sheen animate-page-in relative flex min-h-0 flex-col rounded-none border-x-0 border-t-0 bg-[linear-gradient(180deg,rgba(251,248,241,0.98)_0%,rgba(246,241,232,0.96)_100%)] px-2 pb-1 pt-2 shadow-none sm:min-h-[280px] sm:rounded-[24px] sm:border sm:bg-[linear-gradient(160deg,rgba(255,252,246,0.9)_0%,rgba(248,244,234,0.86)_56%,rgba(243,238,228,0.84)_100%)] sm:p-2.5 sm:shadow-[0_28px_72px_-52px_rgba(31,47,37,0.24)] lg:max-h-[calc(100vh-15.6rem)]">
+      <div className="absolute right-10 top-12 hidden h-28 w-28 rounded-full bg-[#c8dcc9]/18 blur-3xl sm:block" />
+      <div className="absolute bottom-10 left-8 hidden h-24 w-24 rounded-full bg-[#efd6ae]/16 blur-3xl sm:block" />
+      <div className="absolute right-[24%] top-[22%] hidden h-24 w-24 rounded-full bg-[#f1bda6]/12 blur-3xl animate-float-wide sm:block" />
 
-      <header className="energy-chat-toolbar mb-2 hidden flex-col gap-1.5 rounded-[20px] border border-white/10 bg-[linear-gradient(135deg,rgba(8,12,20,0.94)_0%,rgba(10,18,29,0.92)_48%,rgba(18,18,34,0.9)_100%)] px-3 py-2 shadow-[0_22px_58px_-40px_rgba(0,0,0,0.96)] sm:flex sm:flex-row sm:items-center sm:justify-between">
+      <header className="energy-chat-toolbar mb-2 hidden flex-col gap-1.5 rounded-[20px] border border-[#d6ddd0] bg-[linear-gradient(135deg,rgba(255,252,246,0.94)_0%,rgba(248,244,234,0.92)_48%,rgba(244,239,228,0.9)_100%)] px-3 py-2 shadow-[0_22px_58px_-44px_rgba(31,47,37,0.2)] sm:flex sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2.5">
-          <span className="energy-chat-toolbar-icon inline-flex h-8 w-8 items-center justify-center rounded-[18px] border border-white/10 bg-[linear-gradient(135deg,rgba(109,40,217,0.24)_0%,rgba(6,182,212,0.16)_100%)] text-white shadow-[0_14px_34px_-18px_rgba(79,70,229,0.7)]">
+          <span className="energy-chat-toolbar-icon inline-flex h-8 w-8 items-center justify-center rounded-[18px] border border-[#d6ddd0] bg-[linear-gradient(135deg,rgba(216,231,216,0.88)_0%,rgba(247,239,223,0.72)_100%)] text-[#173324] shadow-[0_14px_34px_-22px_rgba(31,47,37,0.2)]">
             <Bot size={15} />
           </span>
           <div>
-            <div className="energy-chip w-fit border-white/10 bg-white/[0.05] px-2.5 py-1 text-[10px] text-white/70">
+            <div className="energy-chip w-fit border-[#d6ddd0] bg-white/72 px-2.5 py-1 text-[10px] text-[#7d8d7e]">
               <Sparkles size={12} />
               Live workspace
             </div>
-            <h2 className="energy-chat-title mt-1 font-display text-base font-bold tracking-[-0.05em] text-white sm:text-[1.18rem]">
+            <h2 className="energy-chat-title mt-1 font-display text-base font-bold tracking-[-0.05em] text-[#173324] sm:text-[1.18rem]">
               {userName ? `${userName}'s chat` : "Reasoning chat"}
             </h2>
-            <p className="energy-chat-subtitle mt-0.5 text-[10px] leading-4 text-white/44 sm:text-[11px]">
+            <p className="energy-chat-subtitle mt-0.5 text-[10px] leading-4 text-[#68786d] sm:text-[11px]">
               Messages stay visible while routing works in the background.
             </p>
           </div>
@@ -73,17 +73,17 @@ export default function ChatWindow({ messages, isLoading, userName, workspaceMod
 
         <div className="energy-chat-toolbar-chips flex flex-wrap items-center gap-1.5">
           {workspaceMode && workspaceMode !== "general" ? (
-            <span className="energy-chip border-[#b69cf9]/20 bg-[#201632]/78 px-2.5 py-1 text-[10px] text-[#ddccff]">{workspaceModeLabel(workspaceMode)}</span>
+            <span className="energy-chip border-[#d9ddd4] bg-white/76 px-2.5 py-1 text-[10px] text-[#6f6c55]">{workspaceModeLabel(workspaceMode)}</span>
           ) : null}
-          <span className="energy-chip border-[#79d0a7]/18 bg-[#11261b]/78 px-2.5 py-1 text-[10px] text-[#a7f3c6]">
+          <span className="energy-chip border-[#cde0d0] bg-[#f4faf5] px-2.5 py-1 text-[10px] text-[#48725b]">
             <Leaf size={13} />
             energy-low-own-v1
           </span>
-          <span className="energy-chip border-[#e2a7ba]/18 bg-[#26111a]/78 px-2.5 py-1 text-[10px] text-[#fbc8d6]">
+          <span className="energy-chip border-[#eed4ca] bg-[#fff4ee] px-2.5 py-1 text-[10px] text-[#bb5f58]">
             <Flame size={13} />
             energy-high-own-v1
           </span>
-          <span className="energy-chip border-white/10 bg-white/[0.05] px-2.5 py-1 text-[10px] text-white/62">{messages.length} msgs</span>
+          <span className="energy-chip border-[#d6ddd0] bg-white/72 px-2.5 py-1 text-[10px] text-[#7d8d7e]">{messages.length} msgs</span>
         </div>
       </header>
 
@@ -91,12 +91,12 @@ export default function ChatWindow({ messages, isLoading, userName, workspaceMod
         <div className="space-y-2 sm:space-y-3">
           {messages.length === 0 ? (
             <div className="flex min-h-[160px] items-center justify-center px-0 py-2 sm:min-h-[220px] sm:px-2 sm:py-4">
-              <div className="w-full max-w-2xl rounded-[22px] border border-white/10 bg-[linear-gradient(135deg,rgba(9,14,24,0.94)_0%,rgba(12,24,31,0.9)_56%,rgba(20,17,30,0.9)_100%)] p-4 text-center shadow-[0_30px_80px_-48px_rgba(0,0,0,0.96)] sm:rounded-[26px] sm:p-5">
-                <div className="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-[18px] border border-white/10 bg-white/[0.05] text-white sm:h-12 sm:w-12 sm:rounded-[20px]">
+              <div className="w-full max-w-2xl rounded-[22px] border border-[#d6ddd0] bg-[linear-gradient(135deg,rgba(255,252,246,0.94)_0%,rgba(248,244,234,0.9)_56%,rgba(244,239,228,0.9)_100%)] p-4 text-center shadow-[0_30px_80px_-58px_rgba(31,47,37,0.22)] sm:rounded-[26px] sm:p-5">
+                <div className="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-[18px] border border-[#d6ddd0] bg-white/72 text-[#173324] sm:h-12 sm:w-12 sm:rounded-[20px]">
                   <Sparkles size={22} />
                 </div>
-                <h3 className="mt-3 font-display text-base font-bold tracking-[-0.04em] text-white sm:text-xl">Start the next thread</h3>
-                <p className="mt-2 text-sm leading-6 text-white/52 sm:leading-6">
+                <h3 className="mt-3 font-display text-base font-bold tracking-[-0.04em] text-[#173324] sm:text-xl">Start the next thread</h3>
+                <p className="mt-2 text-sm leading-6 text-[#68786d] sm:leading-6">
                   Ask a coding question, attach files, or hand the assistant a hard debugging task with real context.
                 </p>
               </div>
@@ -115,9 +115,9 @@ export default function ChatWindow({ messages, isLoading, userName, workspaceMod
           ))}
 
           {isLoading ? (
-            <div className="py-3 text-center text-xs uppercase tracking-[0.24em] text-white/48">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-[linear-gradient(135deg,rgba(11,18,28,0.94)_0%,rgba(14,29,35,0.88)_100%)] px-4 py-2 font-semibold text-white/74 shadow-[0_20px_48px_-36px_rgba(0,0,0,0.9)]">
-                <span className="inline-flex h-2 w-2 rounded-full bg-[#34d399] animate-blink" />
+            <div className="py-3 text-center text-xs uppercase tracking-[0.24em] text-[#8a968c]">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#d6ddd0] bg-[linear-gradient(135deg,rgba(255,252,246,0.94)_0%,rgba(248,244,234,0.88)_100%)] px-4 py-2 font-semibold text-[#5b6f65] shadow-[0_20px_48px_-40px_rgba(31,47,37,0.18)]">
+                <span className="inline-flex h-2 w-2 rounded-full bg-[#4e8b67] animate-blink" />
                 Generating
               </span>
             </div>
@@ -130,7 +130,7 @@ export default function ChatWindow({ messages, isLoading, userName, workspaceMod
         <button
           type="button"
           onClick={() => endRef.current?.scrollIntoView({ block: "end", behavior: "smooth" })}
-          className="absolute bottom-4 right-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/12 bg-[rgba(10,16,24,0.92)] text-white shadow-[0_18px_44px_-24px_rgba(0,0,0,0.9)] transition hover:-translate-y-0.5 hover:bg-[rgba(18,26,38,0.98)]"
+          className="absolute bottom-4 right-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#d6ddd0] bg-[rgba(255,252,246,0.94)] text-[#173324] shadow-[0_18px_44px_-26px_rgba(31,47,37,0.18)] transition hover:-translate-y-0.5 hover:bg-[rgba(255,255,255,0.98)]"
           aria-label="Scroll to latest message"
         >
           <ChevronDown size={18} />

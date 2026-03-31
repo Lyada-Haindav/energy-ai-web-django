@@ -24,10 +24,10 @@ function StatCard({ icon: Icon, label, value, hint }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="energy-eyebrow">{label}</p>
-          <p className="mt-3 font-display text-4xl font-bold tracking-[-0.05em] text-white">{value}</p>
-          {hint ? <p className="mt-2 text-sm text-white/52">{hint}</p> : null}
+          <p className="mt-3 font-display text-4xl font-bold tracking-[-0.05em] text-[#173324]">{value}</p>
+          {hint ? <p className="mt-2 text-sm text-[#5d7064]">{hint}</p> : null}
         </div>
-        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-white/82">
+        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#d6ddd0] bg-white/72 text-[#173324]">
           <Icon size={18} />
         </span>
       </div>
@@ -37,28 +37,28 @@ function StatCard({ icon: Icon, label, value, hint }) {
 
 function TrainingRow({ label, value, hint }) {
   return (
-    <div className="rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-3">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/42">{label}</p>
-      <p className="mt-2 text-xl font-semibold text-white">{value}</p>
-      {hint ? <p className="mt-1 text-sm text-white/48">{hint}</p> : null}
+    <div className="rounded-[22px] border border-[#d6ddd0] bg-white/72 px-4 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8a968c]">{label}</p>
+      <p className="mt-2 text-xl font-semibold text-[#173324]">{value}</p>
+      {hint ? <p className="mt-1 text-sm text-[#7d8d7e]">{hint}</p> : null}
     </div>
   );
 }
 
 function InsightList({ title, items, empty }) {
   return (
-    <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-5">
+    <div className="rounded-[28px] border border-[#d6ddd0] bg-white/72 p-5">
       <p className="energy-eyebrow">{title}</p>
       <div className="mt-4 space-y-2.5">
         {Array.isArray(items) && items.length > 0 ? (
           items.map((item, index) => (
-            <div key={`${item.label}-${index}`} className="flex items-center justify-between gap-3 rounded-[18px] border border-white/8 bg-white/[0.03] px-4 py-3">
-              <span className="text-sm text-white/72">{item.label}</span>
-              <span className="text-sm font-semibold text-white">{item.count ?? item.value ?? 0}</span>
+            <div key={`${item.label}-${index}`} className="flex items-center justify-between gap-3 rounded-[18px] border border-[#dce4d8] bg-white/82 px-4 py-3">
+              <span className="text-sm text-[#5d7064]">{item.label}</span>
+              <span className="text-sm font-semibold text-[#173324]">{item.count ?? item.value ?? 0}</span>
             </div>
           ))
         ) : (
-          <div className="rounded-[18px] border border-white/8 bg-white/[0.03] px-4 py-4 text-sm text-white/48">{empty}</div>
+          <div className="rounded-[18px] border border-[#dce4d8] bg-white/82 px-4 py-4 text-sm text-[#7d8d7e]">{empty}</div>
         )}
       </div>
     </div>
@@ -132,28 +132,28 @@ export default function AdminPage({ user, onNavigate }) {
   const energyScorecard = useMemo(() => quality?.energyScorecard || [], [quality]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="energy-home-page-clean energy-clean-shell relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[-8rem] top-[-6rem] h-72 w-72 rounded-full bg-[#6d28d9]/18 blur-3xl animate-drift" />
-        <div className="absolute right-[-5rem] top-[8%] h-80 w-80 rounded-full bg-[#06b6d4]/14 blur-3xl animate-float" />
-        <div className="absolute bottom-[-10rem] left-[10%] h-80 w-80 rounded-full bg-[#4f46e5]/16 blur-3xl animate-drift" />
+        <div className="absolute left-[-8rem] top-[-6rem] h-72 w-72 rounded-full bg-[#efcb81]/18 blur-3xl animate-drift" />
+        <div className="absolute right-[-5rem] top-[8%] h-80 w-80 rounded-full bg-[#bfd6bf]/14 blur-3xl animate-float" />
+        <div className="absolute bottom-[-10rem] left-[10%] h-80 w-80 rounded-full bg-[#f0b98f]/16 blur-3xl animate-drift" />
       </div>
 
       <section className="relative mx-auto flex min-h-screen w-full max-w-[1440px] flex-col px-4 pb-8 pt-4 sm:px-6 lg:px-8">
-        <header className="energy-panel-dark flex flex-wrap items-center justify-between gap-3 rounded-[28px] px-4 py-3">
-          <EnergyBrand size={44} titleClassName="text-xl" subtitleClassName="text-[10px]" />
+        <header className="energy-home-clean-nav flex flex-wrap items-center justify-between gap-3 rounded-[28px] px-4 py-3">
+          <EnergyBrand size={44} titleClassName="text-xl text-[#173324]" subtitleClassName="text-[10px] text-[#7d8d7e]" />
 
           <div className="flex flex-wrap items-center gap-2">
-            <span className="energy-chip border-white/12 bg-white/[0.06] text-white/78">
+            <span className="energy-chip border-[#d6ddd0] bg-white/72 text-[#48725b]">
               <ShieldCheck size={13} />
               Admin
             </span>
-            <span className="energy-chip border-white/12 bg-white/[0.06] text-white/78">{user?.email || "Unknown user"}</span>
-            <button type="button" onClick={() => onNavigate("home")} className="energy-space-secondary px-4 py-2 text-sm">
+            <span className="energy-chip border-[#d6ddd0] bg-white/72 text-[#5d7064]">{user?.email || "Unknown user"}</span>
+            <button type="button" onClick={() => onNavigate("home")} className="energy-home-secondary-button px-4 py-2 text-sm">
               <ArrowLeft size={14} />
               Home
             </button>
-            <button type="button" onClick={() => onNavigate("chat")} className="energy-space-primary px-4 py-2 text-sm">
+            <button type="button" onClick={() => onNavigate("chat")} className="energy-home-primary-button px-4 py-2 text-sm">
               Open Chat
             </button>
           </div>
@@ -162,11 +162,11 @@ export default function AdminPage({ user, onNavigate }) {
         <section className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="energy-panel rounded-[34px] p-6">
             <p className="energy-eyebrow">Admin Console</p>
-            <h1 className="mt-4 font-display text-4xl font-bold tracking-[-0.06em] text-white sm:text-5xl">
+            <h1 className="mt-4 font-display text-4xl font-bold tracking-[-0.06em] text-[#173324] sm:text-5xl">
               Control training, health, and quality from one place.
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-8 text-white/56 sm:text-lg">
-              This page is intentionally separate at <span className="font-semibold text-white/72">/admin</span> so the main product stays clean while admin controls remain protected.
+            <p className="mt-4 max-w-2xl text-base leading-8 text-[#5d7064] sm:text-lg">
+              This page is intentionally separate at <span className="font-semibold text-[#173324]">/admin</span> so the main product stays clean while admin controls remain protected.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -174,26 +174,26 @@ export default function AdminPage({ user, onNavigate }) {
                 type="button"
                 onClick={handleRetrain}
                 disabled={isRetraining || training?.inProgress}
-                className="energy-space-primary px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                className="energy-home-primary-button px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isRetraining || training?.inProgress ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
                 {training?.inProgress ? "Retraining..." : "Retrain Models"}
               </button>
-              <button type="button" onClick={() => void loadOverview()} className="energy-space-secondary px-5 py-3 text-sm">
+              <button type="button" onClick={() => void loadOverview()} className="energy-home-secondary-button px-5 py-3 text-sm">
                 <Activity size={15} />
                 Refresh Overview
               </button>
             </div>
 
             {error ? (
-              <div className="mt-5 rounded-[24px] border border-[#7f1d1d]/40 bg-[#3f1014]/42 px-4 py-3 text-sm text-[#fecaca]">{error}</div>
+              <div className="mt-5 rounded-[24px] border border-[#edc6bf] bg-[#fff1ed] px-4 py-3 text-sm text-[#9a4a3b]">{error}</div>
             ) : null}
           </div>
 
           <div className="energy-panel rounded-[34px] p-6">
             <p className="energy-eyebrow">Training Status</p>
             {isLoading && !overview ? (
-              <div className="mt-6 inline-flex items-center gap-3 rounded-[20px] border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-white/70">
+              <div className="mt-6 inline-flex items-center gap-3 rounded-[20px] border border-[#d6ddd0] bg-white/72 px-4 py-3 text-sm text-[#5d7064]">
                 <Loader2 size={15} className="animate-spin" />
                 Loading admin overview
               </div>
@@ -239,9 +239,9 @@ export default function AdminPage({ user, onNavigate }) {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="energy-eyebrow">Quality Signals</p>
-                <h2 className="mt-3 font-display text-3xl font-bold tracking-[-0.05em] text-white">Feedback and model trust</h2>
+                <h2 className="mt-3 font-display text-3xl font-bold tracking-[-0.05em] text-[#173324]">Feedback and model trust</h2>
               </div>
-              <span className="energy-chip border-white/10 bg-white/[0.05] text-white/70">
+              <span className="energy-chip border-[#d6ddd0] bg-white/72 text-[#5d7064]">
                 <Gauge size={13} />
                 Approval {quality?.approvalRate || 0}%
               </span>
@@ -292,14 +292,14 @@ export default function AdminPage({ user, onNavigate }) {
               ))}
             </div>
 
-            <div className="mt-5 rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
-              <div className="flex items-center gap-2 text-white/78">
+            <div className="mt-5 rounded-[24px] border border-[#d6ddd0] bg-white/72 p-4">
+              <div className="flex items-center gap-2 text-[#5d7064]">
                 <AlertTriangle size={15} />
                 <span className="text-sm font-semibold">Admin workspace controls</span>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {(controls?.workspaceModes || []).map((mode) => (
-                  <span key={mode.id} className="energy-chip border-white/10 bg-white/[0.05] text-white/68">
+                  <span key={mode.id} className="energy-chip border-[#d6ddd0] bg-white/82 text-[#5d7064]">
                     {mode.label}
                   </span>
                 ))}

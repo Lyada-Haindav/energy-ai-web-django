@@ -94,10 +94,10 @@ function hashForPage(page, params = {}) {
 function StatusBanner({ tone = "neutral", children, action }) {
   const toneClass =
     tone === "error"
-      ? "border-[#7f1d1d]/40 bg-[#3f1014]/42 text-[#fecaca]"
+      ? "border-[#edc6bf] bg-[#fff1ed] text-[#9a4a3b]"
       : tone === "success"
-        ? "border-[#14532d]/40 bg-[#0d2f1d]/42 text-[#bbf7d0]"
-        : "border-[#4c1d95]/40 bg-[#271040]/44 text-[#ddd6fe]";
+        ? "border-[#cfe4d4] bg-[#eff8f0] text-[#2f6a47]"
+        : "border-[#dddcc8] bg-[#fffaf0] text-[#7c6840]";
 
   return (
     <div
@@ -224,27 +224,27 @@ function AppShell({
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="energy-home-page-clean energy-clean-shell relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[-10rem] top-[-6rem] h-72 w-72 rounded-full bg-[#6d28d9]/20 blur-3xl animate-drift" />
-        <div className="absolute right-[-6rem] top-[2rem] h-80 w-80 rounded-full bg-[#06b6d4]/18 blur-3xl animate-float" />
-        <div className="absolute bottom-[-8rem] right-[6%] h-80 w-80 rounded-full bg-[#4f46e5]/18 blur-3xl animate-drift" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(79,70,229,0.16),transparent_52%)]" />
+        <div className="absolute left-[-10rem] top-[-6rem] h-72 w-72 rounded-full bg-[#efcb81]/22 blur-3xl animate-drift" />
+        <div className="absolute right-[-6rem] top-[2rem] h-80 w-80 rounded-full bg-[#b5d0b8]/18 blur-3xl animate-float" />
+        <div className="absolute bottom-[-8rem] right-[6%] h-80 w-80 rounded-full bg-[#f0b98f]/18 blur-3xl animate-drift" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(170,196,170,0.16),transparent_52%)]" />
       </div>
 
       <header className="fixed inset-x-0 top-0 z-40 px-0 pt-0 sm:sticky sm:px-4 sm:pt-3 lg:px-6">
-        <div className="energy-app-topbar energy-panel-dark energy-page-enter mx-auto flex min-h-[4rem] w-full max-w-[1440px] flex-col gap-2 rounded-none border-x-0 border-t-0 px-3 py-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:rounded-[22px] sm:border sm:px-4 sm:py-2 lg:px-5">
-          <div className="flex w-full items-center justify-between gap-3 text-white sm:hidden">
+        <div className="energy-app-topbar energy-home-clean-nav energy-page-enter mx-auto flex min-h-[4rem] w-full max-w-[1440px] flex-col gap-2 rounded-none border-x-0 border-t-0 px-3 py-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:rounded-[22px] sm:border sm:px-4 sm:py-2 lg:px-5">
+          <div className="flex w-full items-center justify-between gap-3 text-[#173324] sm:hidden">
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(true)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/12 bg-white/8 text-white transition hover:bg-white/14"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#d6ddd0] bg-white/72 text-[#173324] transition hover:bg-white/88"
               aria-label="Open menu"
             >
               <Menu size={18} />
             </button>
 
-            <EnergyBrand size={38} className="min-w-0 flex-1 justify-center" titleClassName="text-base" showSubtitle={false} />
+            <EnergyBrand size={38} className="min-w-0 flex-1 justify-center" titleClassName="text-base text-[#173324]" showSubtitle={false} />
 
             <button
               type="button"
@@ -256,35 +256,40 @@ function AppShell({
 
                 onNavigate("chat");
               }}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/12 bg-white/8 text-white transition hover:bg-white/14"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#d6ddd0] bg-white/72 text-[#173324] transition hover:bg-white/88"
               aria-label={page === "chat" ? "Start new chat" : "Open chat"}
             >
               {page === "chat" ? <MessageCirclePlus size={18} /> : <MessageCircle size={18} />}
             </button>
           </div>
 
-          <EnergyBrand size={40} className="hidden sm:flex sm:w-auto" titleClassName="text-lg sm:text-[1.08rem]" subtitleClassName="text-[10px]" />
+          <EnergyBrand
+            size={40}
+            className="hidden sm:flex sm:w-auto"
+            titleClassName="text-lg sm:text-[1.08rem] text-[#173324]"
+            subtitleClassName="text-[10px] text-[#7d8d7e]"
+          />
 
           <div className="hidden w-full flex-wrap items-center gap-2 sm:flex sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
             <div className="hidden items-center gap-2 md:flex">
-              <span className="energy-chip border-white/12 bg-white/8 text-white/86">
+              <span className="energy-chip border-[#d7dfd2] bg-white/72 text-[#48725b]">
                 <Leaf size={12} />
                 Low Energy
               </span>
-              <span className="energy-chip border-white/12 bg-white/8 text-white/86">
+              <span className="energy-chip border-[#ead7bd] bg-[#fff4df] text-[#9a7532]">
                 <Flame size={12} />
                 High Energy
               </span>
             </div>
 
-            <div className="w-full rounded-full border border-white/10 bg-white/8 p-1 sm:w-auto">
+            <div className="w-full rounded-full border border-[#d6ddd0] bg-white/70 p-1 sm:w-auto">
               <button
                 type="button"
                 onClick={() => onNavigate("chat")}
                 className={`inline-flex min-w-[98px] flex-1 items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition sm:flex-none ${
                   page === "chat"
-                    ? "bg-[linear-gradient(135deg,#6d28d9_0%,#4f46e5_52%,#06b6d4_100%)] text-white shadow-soft"
-                    : "text-white hover:bg-white/12"
+                    ? "bg-[linear-gradient(180deg,#173324_0%,#10261d_100%)] text-white shadow-[0_18px_40px_-28px_rgba(16,38,29,0.42)]"
+                    : "text-[#173324] hover:bg-white/88"
                 }`}
               >
                 <MessageCircle size={14} />
@@ -295,8 +300,8 @@ function AppShell({
                 onClick={() => onNavigate("analytics")}
                 className={`inline-flex min-w-[98px] flex-1 items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition sm:flex-none ${
                   page === "analytics"
-                    ? "bg-[linear-gradient(135deg,#6d28d9_0%,#4f46e5_52%,#06b6d4_100%)] text-white shadow-soft"
-                    : "text-white hover:bg-white/12"
+                    ? "bg-[linear-gradient(180deg,#173324_0%,#10261d_100%)] text-white shadow-[0_18px_40px_-28px_rgba(16,38,29,0.42)]"
+                    : "text-[#173324] hover:bg-white/88"
                 }`}
               >
                 <BarChart3 size={14} />
@@ -307,25 +312,25 @@ function AppShell({
             <button
               type="button"
               onClick={() => setIsCommandPaletteOpen(true)}
-              className="hidden items-center gap-2 rounded-[16px] border border-white/12 bg-white/8 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/16 lg:inline-flex"
+              className="hidden items-center gap-2 rounded-[16px] border border-[#d6ddd0] bg-white/72 px-3 py-2 text-sm font-semibold text-[#173324] transition hover:bg-white/88 lg:inline-flex"
             >
               <Search size={14} />
               Command
-              <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-white/48">Ctrl K</span>
+              <span className="rounded-full border border-[#d6ddd0] px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-[#7d8d7e]">Ctrl K</span>
             </button>
 
-            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[16px] border border-white/12 bg-white/8 px-3 py-2 text-white/85 backdrop-blur sm:max-w-[220px] sm:flex-none">
+            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[16px] border border-[#d6ddd0] bg-white/72 px-3 py-2 text-[#173324] backdrop-blur sm:max-w-[220px] sm:flex-none">
               <UserCircle2 size={18} />
               <div className="min-w-0 text-left">
                 <p className="truncate text-sm font-semibold leading-none">{user.name}</p>
-                <p className="mt-1 hidden text-xs text-white/60 xl:block">{user.email}</p>
+                <p className="mt-1 hidden text-xs text-[#7d8d7e] xl:block">{user.email}</p>
               </div>
             </div>
 
             <button
               type="button"
               onClick={onLogout}
-              className="inline-flex items-center justify-center gap-2 rounded-[16px] border border-white/14 bg-white/8 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/16"
+              className="inline-flex items-center justify-center gap-2 rounded-[16px] border border-[#d6ddd0] bg-white/72 px-3 py-2 text-sm font-semibold text-[#173324] transition hover:bg-white/88"
             >
               <LogOut size={14} />
               Logout
@@ -342,14 +347,14 @@ function AppShell({
           className={`absolute inset-0 bg-black/72 transition duration-300 ${isMobileMenuOpen ? "opacity-100" : "opacity-0"}`}
         />
         <aside
-        className={`absolute inset-y-0 left-0 flex w-[84vw] max-w-[340px] flex-col border-r border-white/10 bg-[linear-gradient(180deg,rgba(6,10,18,0.98)_0%,rgba(8,14,22,0.98)_48%,rgba(12,18,28,0.98)_100%)] px-3 py-3 shadow-[0_40px_120px_-40px_rgba(0,0,0,1)] transition duration-300 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+          className={`absolute inset-y-0 left-0 flex w-[84vw] max-w-[340px] flex-col border-r border-[#d6ddd0] bg-[linear-gradient(180deg,rgba(250,246,238,0.98)_0%,rgba(247,241,230,0.98)_48%,rgba(244,238,226,0.98)_100%)] px-3 py-3 shadow-[0_40px_120px_-60px_rgba(43,53,40,0.28)] transition duration-300 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
         >
-          <div className="flex items-center justify-between gap-3 rounded-[24px] border border-white/10 bg-white/[0.04] px-3 py-3 text-white">
-            <EnergyBrand size={40} className="min-w-0 flex-1" titleClassName="text-lg" subtitleClassName="text-[10px]" />
+          <div className="flex items-center justify-between gap-3 rounded-[24px] border border-[#d6ddd0] bg-white/72 px-3 py-3 text-[#173324]">
+            <EnergyBrand size={40} className="min-w-0 flex-1" titleClassName="text-lg text-[#173324]" subtitleClassName="text-[10px] text-[#7d8d7e]" />
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/12 bg-white/8 text-white transition hover:bg-white/14"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#d6ddd0] bg-white/72 text-[#173324] transition hover:bg-white/88"
               aria-label="Close menu"
             >
               <X size={16} />
@@ -365,8 +370,8 @@ function AppShell({
               }}
               className={`inline-flex items-center justify-center gap-2 rounded-[20px] px-3 py-3 text-sm font-semibold transition ${
                 page === "chat"
-                  ? "bg-[linear-gradient(135deg,#6d28d9_0%,#4f46e5_52%,#06b6d4_100%)] text-white shadow-soft"
-                  : "border border-white/10 bg-white/[0.05] text-white/78"
+                  ? "bg-[linear-gradient(180deg,#173324_0%,#10261d_100%)] text-white shadow-[0_18px_40px_-28px_rgba(16,38,29,0.42)]"
+                  : "border border-[#d6ddd0] bg-white/72 text-[#173324]"
               }`}
             >
               <MessageCircle size={15} />
@@ -380,8 +385,8 @@ function AppShell({
               }}
               className={`inline-flex items-center justify-center gap-2 rounded-[20px] px-3 py-3 text-sm font-semibold transition ${
                 page === "analytics"
-                  ? "bg-[linear-gradient(135deg,#6d28d9_0%,#4f46e5_52%,#06b6d4_100%)] text-white shadow-soft"
-                  : "border border-white/10 bg-white/[0.05] text-white/78"
+                  ? "bg-[linear-gradient(180deg,#173324_0%,#10261d_100%)] text-white shadow-[0_18px_40px_-28px_rgba(16,38,29,0.42)]"
+                  : "border border-[#d6ddd0] bg-white/72 text-[#173324]"
               }`}
             >
               <BarChart3 size={15} />
@@ -406,7 +411,7 @@ function AppShell({
           <button
             type="button"
             onClick={onLogout}
-            className="mt-3 inline-flex items-center justify-center gap-2 rounded-[22px] border border-white/12 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.1]"
+            className="mt-3 inline-flex items-center justify-center gap-2 rounded-[22px] border border-[#d6ddd0] bg-white/72 px-4 py-3 text-sm font-semibold text-[#173324] transition hover:bg-white/88"
           >
             <LogOut size={15} />
             Logout

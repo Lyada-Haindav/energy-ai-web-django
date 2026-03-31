@@ -5,10 +5,10 @@ import AuthShell from "./AuthShell";
 function Notice({ tone = "neutral", children }) {
   const toneClass =
     tone === "error"
-      ? "border-[#7f1d1d]/40 bg-[#3f1014]/42 text-[#fecaca]"
+      ? "border-[#edc6bf] bg-[#fff1ed] text-[#9a4a3b]"
       : tone === "success"
-        ? "border-[#14532d]/40 bg-[#0d2f1d]/42 text-[#bbf7d0]"
-        : "border-[#4c1d95]/40 bg-[#271040]/44 text-[#ddd6fe]";
+        ? "border-[#cfe4d4] bg-[#eff8f0] text-[#2f6a47]"
+        : "border-[#dddcc8] bg-[#fffaf0] text-[#7c6840]";
 
   return <div className={`rounded-[22px] border px-4 py-4 text-sm leading-7 ${toneClass}`}>{children}</div>;
 }
@@ -150,23 +150,23 @@ export default function TokenActionPage({
         footer={
           <p>
             Need to sign in first?{" "}
-            <button type="button" onClick={() => navigate("login")} className="font-semibold text-white transition hover:text-cyan-300">
+            <button type="button" onClick={() => navigate("login")} className="font-semibold text-[#173324] transition hover:text-[#48725b]">
               Go to login
             </button>
           </p>
         }
       >
-        <p className="text-xs uppercase tracking-[0.28em] text-white/42">Verification</p>
-        <h2 className="mt-3 font-display text-4xl font-bold tracking-[-0.05em] text-white">
+        <p className="text-xs uppercase tracking-[0.28em] text-[#8a968c]">Verification</p>
+        <h2 className="mt-3 font-display text-4xl font-bold tracking-[-0.05em] text-[#173324]">
           {token ? "Confirming email" : "Check your inbox"}
         </h2>
-        <p className="mt-3 text-sm leading-7 text-white/56">
+        <p className="mt-3 text-sm leading-7 text-[#5d7064]">
           {token ? "Validating your verification link." : email ? `Use the link sent to ${email}.` : "Open the newest link from your inbox."}
         </p>
 
         <div className="mt-7 space-y-4">
           {isBusy ? (
-            <div className="rounded-[22px] border border-white/12 bg-white/6 px-4 py-3 text-sm text-white/74 backdrop-blur">
+            <div className="rounded-[22px] border border-[#d6ddd0] bg-white/72 px-4 py-3 text-sm text-[#5d7064] backdrop-blur">
               <div className="inline-flex items-center gap-2">
                 <Loader2 size={16} className="animate-spin" />
                 Verifying email
@@ -183,13 +183,13 @@ export default function TokenActionPage({
 
           <div className="flex flex-col gap-3 sm:flex-row">
             {status?.tone === "success" ? (
-              <button type="button" onClick={() => navigate("login", email ? { email } : {})} className="energy-space-primary">
+              <button type="button" onClick={() => navigate("login", email ? { email } : {})} className="energy-home-primary-button">
                 <CheckCircle2 size={16} />
                 Sign in
               </button>
             ) : null}
             {email ? (
-              <button type="button" onClick={resendVerification} disabled={isResending} className="energy-space-secondary disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="button" onClick={resendVerification} disabled={isResending} className="energy-home-secondary-button disabled:cursor-not-allowed disabled:opacity-60">
                 {isResending ? <Loader2 size={16} className="animate-spin" /> : <RefreshCcw size={16} />}
                 Resend
               </button>
@@ -206,19 +206,19 @@ export default function TokenActionPage({
       footer={
         <p>
           Back to account access?{" "}
-          <button type="button" onClick={() => navigate("login")} className="font-semibold text-white transition hover:text-cyan-300">
+            <button type="button" onClick={() => navigate("login")} className="font-semibold text-[#173324] transition hover:text-[#48725b]">
             Login
           </button>
         </p>
       }
     >
-      <p className="text-xs uppercase tracking-[0.28em] text-white/42">Reset password</p>
-      <h2 className="mt-3 font-display text-4xl font-bold tracking-[-0.05em] text-white">Choose a new password</h2>
-      <p className="mt-3 text-sm leading-7 text-white/56">Set a new password and continue to the workspace.</p>
+      <p className="text-xs uppercase tracking-[0.28em] text-[#8a968c]">Reset password</p>
+      <h2 className="mt-3 font-display text-4xl font-bold tracking-[-0.05em] text-[#173324]">Choose a new password</h2>
+      <p className="mt-3 text-sm leading-7 text-[#5d7064]">Set a new password and continue to the workspace.</p>
 
       <form onSubmit={submitReset} className="mt-7 space-y-4">
         <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-white/78">New password</span>
+          <span className="mb-2 block text-sm font-semibold text-[#355445]">New password</span>
           <input
             type="password"
             value={password}
@@ -230,7 +230,7 @@ export default function TokenActionPage({
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-white/78">Confirm password</span>
+          <span className="mb-2 block text-sm font-semibold text-[#355445]">Confirm password</span>
           <input
             type="password"
             value={confirmPassword}
@@ -248,13 +248,13 @@ export default function TokenActionPage({
         ) : null}
 
         {status?.tone === "success" ? (
-          <button type="button" onClick={() => navigate("login", email ? { email } : {})} className="energy-space-secondary w-full justify-center">
+          <button type="button" onClick={() => navigate("login", email ? { email } : {})} className="energy-home-secondary-button w-full justify-center">
             <CheckCircle2 size={16} />
             Sign in
           </button>
         ) : null}
 
-        <button type="submit" disabled={isBusy} className="energy-space-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60">
+        <button type="submit" disabled={isBusy} className="energy-home-primary-button w-full justify-center disabled:cursor-not-allowed disabled:opacity-60">
           {isBusy ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
           Save password
         </button>

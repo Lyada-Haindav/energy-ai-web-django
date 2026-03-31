@@ -388,31 +388,31 @@ export default function AnalyticsPage({ sessions }) {
 
   return (
     <section className="energy-page-enter space-y-4">
-      <header className="energy-panel-dark animate-page-in p-5 sm:p-6">
+      <header className="energy-panel animate-page-in p-5 sm:p-6">
         <span className="energy-orbit-ring left-[6%] top-[20%] h-24 w-24" />
         <span className="energy-orbit-ring energy-orbit-ring-reverse right-[18%] top-[30%] h-[4.5rem] w-[4.5rem]" />
         <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <div className="energy-chip border-white/12 bg-white/10 text-[#f2d7a5]">
+            <div className="energy-chip border-[#d6ddd0] bg-white/72 text-[#7c6840]">
               <Sparkles size={14} />
               Analytics dashboard
             </div>
-            <h2 className="mt-4 font-display text-3xl font-bold tracking-[-0.05em] text-white sm:text-4xl">
+            <h2 className="mt-4 font-display text-3xl font-bold tracking-[-0.05em] text-[#173324] sm:text-4xl">
               Energy AI usage, benchmarked like a live control room.
             </h2>
-            <p className="mt-3 text-sm leading-7 text-white/72">
+            <p className="mt-3 text-sm leading-7 text-[#5d7064]">
               Track local response energy estimates, compare them against frontier chat benchmarks, and see when the system
               stays lightweight versus escalating into heavier reasoning.
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-[24px] border border-white/10 bg-white/8 px-4 py-3 text-white">
-              <p className="text-xs uppercase tracking-[0.22em] text-white/45">Tracked replies</p>
+            <div className="rounded-[24px] border border-[#d6ddd0] bg-white/72 px-4 py-3 text-[#173324]">
+              <p className="text-xs uppercase tracking-[0.22em] text-[#8a968c]">Tracked replies</p>
               <p className="mt-2 font-display text-3xl font-bold tracking-[-0.04em]">{metrics.totalAssistantResponses}</p>
             </div>
-            <div className="rounded-[24px] border border-white/10 bg-white/8 px-4 py-3 text-white">
-              <p className="text-xs uppercase tracking-[0.22em] text-white/45">Est. energy</p>
+            <div className="rounded-[24px] border border-[#d6ddd0] bg-white/72 px-4 py-3 text-[#173324]">
+              <p className="text-xs uppercase tracking-[0.22em] text-[#8a968c]">Est. energy</p>
               <p className="mt-2 font-display text-3xl font-bold tracking-[-0.04em]">{formatEnergy(metrics.totalEstimatedWh)}</p>
             </div>
           </div>

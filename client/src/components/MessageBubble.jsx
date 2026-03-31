@@ -14,14 +14,14 @@ function ModelChip({ meta }) {
   const visibleLatencyMs = Number(meta.firstTokenLatencyMs || meta.startLatencyMs || meta.latencyMs || 0);
 
   return (
-    <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[10px] font-medium text-white/44">
-      <span className="energy-chip border-white/10 bg-white/[0.05] text-white/72">{modelDisplayName(meta.model)}</span>
+    <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[10px] font-medium text-[#8a968c]">
+      <span className="energy-chip border-[#d6ddd0] bg-white/72 text-[#5b6f65]">{modelDisplayName(meta.model)}</span>
       <span className={`energy-chip ${energyOption.chipClass}`}>{energyLabelFromMeta(meta)}</span>
       {meta.workspaceMode && meta.workspaceMode !== "general" ? (
-        <span className="energy-chip border-[#b69cf9]/20 bg-[#201632]/84 text-[#ddccff]">{workspaceModeLabel(meta.workspaceMode)}</span>
+        <span className="energy-chip border-[#d6ddd0] bg-white/72 text-[#7c6840]">{workspaceModeLabel(meta.workspaceMode)}</span>
       ) : null}
-      {visibleLatencyMs ? <span className="energy-chip border-white/10 bg-white/[0.05] text-white/68">{visibleLatencyMs} ms</span> : null}
-      {meta.energyScore ? <span className="energy-chip border-white/10 bg-white/[0.05] text-white/68">energy {meta.energyScore}</span> : null}
+      {visibleLatencyMs ? <span className="energy-chip border-[#d6ddd0] bg-white/72 text-[#7d8d7e]">{visibleLatencyMs} ms</span> : null}
+      {meta.energyScore ? <span className="energy-chip border-[#d6ddd0] bg-white/72 text-[#7d8d7e]">energy {meta.energyScore}</span> : null}
     </div>
   );
 }
@@ -38,7 +38,7 @@ function Sources({ sources }) {
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="energy-chip border-white/10 bg-white/[0.05] text-white/74 transition hover:bg-white/[0.1]"
+        className="energy-chip border-[#d6ddd0] bg-white/72 text-[#5b6f65] transition hover:bg-white/88"
       >
         {open ? "Hide sources" : `Show sources (${sources.length})`}
       </button>
@@ -50,7 +50,7 @@ function Sources({ sources }) {
               href={source.url}
               target="_blank"
               rel="noreferrer"
-              className="energy-chip border-white/10 bg-white/[0.05] text-white/74 transition hover:-translate-y-0.5 hover:bg-white/[0.1]"
+              className="energy-chip border-[#d6ddd0] bg-white/72 text-[#5b6f65] transition hover:-translate-y-0.5 hover:bg-white/88"
             >
               {source.title || `Source ${index + 1}`}
             </a>
@@ -110,13 +110,13 @@ function CodeBlock({ language, code }) {
   }
 
   return (
-    <div className="my-3 overflow-hidden rounded-[24px] border border-[#1e2c29]/12 bg-[#0f1f18] text-[#eff8f2] shadow-[0_24px_54px_-38px_rgba(10,28,21,0.78)]">
-      <div className="flex items-center justify-between border-b border-white/8 px-4 py-3 text-[11px] uppercase tracking-[0.16em] text-white/55">
+    <div className="my-3 overflow-hidden rounded-[24px] border border-[#d6ddd0] bg-[#fffdf8] text-[#173324] shadow-[0_24px_54px_-42px_rgba(31,47,37,0.16)]">
+      <div className="flex items-center justify-between border-b border-[#e4e9df] px-4 py-3 text-[11px] uppercase tracking-[0.16em] text-[#8a968c]">
         <span>{language}</span>
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[11px] font-semibold text-white transition hover:bg-white/12"
+          className="inline-flex items-center gap-1 rounded-full border border-[#d6ddd0] bg-white/82 px-3 py-1 text-[11px] font-semibold text-[#173324] transition hover:bg-white"
         >
           {copied ? <Check size={12} /> : <Copy size={12} />}
           {copied ? "Copied" : "Copy"}
@@ -163,12 +163,12 @@ function AttachmentList({ attachments }) {
       {attachments.map((attachment) => (
         <span
           key={attachment.id || attachment.name}
-          className="inline-flex max-w-full items-center gap-2 rounded-[14px] border border-white/10 bg-white/[0.05] px-3 py-1.5 text-[11px] text-white/80"
+          className="inline-flex max-w-full items-center gap-2 rounded-[14px] border border-[#d6ddd0] bg-white/72 px-3 py-1.5 text-[11px] text-[#173324]"
         >
           <FileCode2 size={13} className="shrink-0" />
           <span className="min-w-0">
             <span className="block truncate font-semibold">{attachment.name}</span>
-            <span className="block text-[11px] text-white/48">
+            <span className="block text-[11px] text-[#7d8d7e]">
               {attachment.language || "text"} · {describeAttachmentSize(attachment.size)}
             </span>
           </span>
@@ -186,8 +186,8 @@ function ActionMenuItem({ children, active = false, onClick, ariaLabel }) {
       aria-label={ariaLabel}
       className={`flex w-full items-center gap-2 rounded-2xl border px-3 py-2 text-left text-[12px] font-semibold transition ${
         active
-          ? "border-white/18 bg-white/[0.14] text-white"
-          : "border-white/10 bg-white/[0.05] text-white/78 hover:bg-white/[0.1]"
+          ? "border-[#cddbcf] bg-[#f3f9f4] text-[#173324]"
+          : "border-[#d6ddd0] bg-white/72 text-[#5b6f65] hover:bg-white/88"
       }`}
     >
       {children}
@@ -203,10 +203,10 @@ export default function MessageBubble({ message, isLatestAssistant, onReusePromp
   const menuRef = useRef(null);
 
   const bubbleClass = fromUser
-    ? "ml-auto max-w-[94%] border-[#3ba36d]/18 bg-[linear-gradient(135deg,rgba(11,34,24,0.98)_0%,rgba(20,88,57,0.96)_54%,rgba(28,122,82,0.92)_100%)] text-white shadow-[0_28px_70px_-44px_rgba(14,66,43,0.95)] sm:max-w-[82%]"
+    ? "ml-auto max-w-[94%] border-[#c9ddcb] bg-[linear-gradient(135deg,rgba(236,248,238,0.98)_0%,rgba(223,241,227,0.96)_54%,rgba(214,235,219,0.92)_100%)] text-[#173324] shadow-[0_28px_70px_-54px_rgba(31,47,37,0.16)] sm:max-w-[82%]"
     : energyKey === "deep"
-      ? "mr-auto max-w-[96%] border-[#8b4a6f]/24 bg-[linear-gradient(135deg,rgba(34,15,29,0.96)_0%,rgba(24,15,34,0.95)_52%,rgba(11,18,30,0.92)_100%)] text-[#fce7f3] shadow-[0_28px_72px_-48px_rgba(0,0,0,0.98)] sm:max-w-[86%]"
-      : "mr-auto max-w-[96%] border-white/10 bg-[linear-gradient(135deg,rgba(10,16,28,0.97)_0%,rgba(12,26,37,0.94)_54%,rgba(16,19,32,0.92)_100%)] text-white/90 shadow-[0_28px_72px_-48px_rgba(0,0,0,0.98)] sm:max-w-[86%]";
+      ? "mr-auto max-w-[96%] border-[#edd8d1] bg-[linear-gradient(135deg,rgba(255,246,241,0.98)_0%,rgba(250,238,233,0.95)_52%,rgba(247,243,237,0.92)_100%)] text-[#173324] shadow-[0_28px_72px_-54px_rgba(31,47,37,0.16)] sm:max-w-[86%]"
+      : "mr-auto max-w-[96%] border-[#d6ddd0] bg-[linear-gradient(135deg,rgba(255,252,246,0.98)_0%,rgba(248,244,234,0.95)_54%,rgba(244,239,228,0.92)_100%)] text-[#173324] shadow-[0_28px_72px_-54px_rgba(31,47,37,0.14)] sm:max-w-[86%]";
 
   async function handleCopy() {
     try {
@@ -270,12 +270,12 @@ export default function MessageBubble({ message, isLatestAssistant, onReusePromp
   return (
     <article className={`animate-rise relative overflow-hidden rounded-[22px] border px-3 py-3 transition duration-300 hover:-translate-y-0.5 sm:rounded-[26px] sm:px-3.5 sm:py-3.5 ${bubbleClass}`}>
       <div className="mb-2 flex items-start justify-between gap-3 sm:mb-2.5">
-        <div className={`flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] ${fromUser ? "text-white/68" : "text-white/48"}`}>
+        <div className={`flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] ${fromUser ? "text-[#5f7967]" : "text-[#8a968c]"}`}>
           <span
             className={`inline-flex h-7 w-7 items-center justify-center rounded-2xl ${
               fromUser
-                ? "bg-white/10"
-                : "border border-white/10 bg-[linear-gradient(135deg,rgba(109,40,217,0.18)_0%,rgba(6,182,212,0.16)_100%)] text-white"
+                ? "border border-[#c9ddcb] bg-white/82 text-[#173324]"
+                : "border border-[#d6ddd0] bg-[linear-gradient(135deg,rgba(241,248,241,0.92)_0%,rgba(247,241,228,0.82)_100%)] text-[#173324]"
             }`}
           >
             {fromUser ? <User size={13} /> : <Bot size={13} />}
@@ -288,12 +288,12 @@ export default function MessageBubble({ message, isLatestAssistant, onReusePromp
             onClick={() => setMenuOpen((current) => !current)}
             aria-label="Open message actions"
             aria-expanded={menuOpen}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-white/72 transition hover:bg-white/[0.1]"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-[#d6ddd0] bg-white/72 text-[#5b6f65] transition hover:bg-white/88"
           >
             <Ellipsis size={18} />
           </button>
           {menuOpen ? (
-            <div className="absolute right-0 top-[calc(100%+0.55rem)] z-20 w-[208px] rounded-[22px] border border-white/10 bg-[rgba(8,13,24,0.96)] p-2 shadow-[0_28px_80px_-34px_rgba(0,0,0,0.98)] backdrop-blur-2xl">
+            <div className="absolute right-0 top-[calc(100%+0.55rem)] z-20 w-[208px] rounded-[22px] border border-[#d6ddd0] bg-[rgba(255,251,245,0.96)] p-2 shadow-[0_28px_80px_-40px_rgba(31,47,37,0.16)] backdrop-blur-2xl">
               <div className="space-y-2">
                 {fromUser ? (
                   <>
@@ -345,11 +345,11 @@ export default function MessageBubble({ message, isLatestAssistant, onReusePromp
       <MessageContent content={message.content || "..."} />
       {!fromUser ? <ModelChip meta={message.meta} /> : null}
       {!fromUser && message.meta?.routeReason ? (
-        <p className="mt-2.5 text-[11px] leading-5 text-white/46">{message.meta.routeReason}</p>
+        <p className="mt-2.5 text-[11px] leading-5 text-[#7d8d7e]">{message.meta.routeReason}</p>
       ) : null}
       {!fromUser && message.meta?.stopped ? (
         <div className="mt-2.5">
-          <span className="energy-chip border-white/10 bg-white/[0.05] text-white/64">Stopped early</span>
+          <span className="energy-chip border-[#d6ddd0] bg-white/72 text-[#7d8d7e]">Stopped early</span>
         </div>
       ) : null}
       {!fromUser ? <Sources sources={message.meta?.sources} /> : null}
