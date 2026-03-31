@@ -1444,6 +1444,327 @@ body::after {
     background: rgba(255, 255, 255, 0.08);
   }
 
+  .energy-home-page-clean {
+    position: relative;
+    background:
+      radial-gradient(circle at 10% 14%, rgba(241, 199, 96, 0.26), transparent 24%),
+      radial-gradient(circle at 84% 14%, rgba(157, 198, 160, 0.22), transparent 26%),
+      radial-gradient(circle at 76% 78%, rgba(238, 171, 121, 0.18), transparent 22%),
+      linear-gradient(180deg, #f8f4eb 0%, #f6f0e4 46%, #f4efe4 100%);
+    color: #10261d;
+  }
+
+  .energy-home-page-clean .energy-space-stars {
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(18, 38, 29, 0.12) 0 1.6px, transparent 3px),
+      radial-gradient(circle at 76% 14%, rgba(68, 93, 76, 0.12) 0 1.4px, transparent 3px),
+      radial-gradient(circle at 54% 26%, rgba(18, 38, 29, 0.08) 0 1.2px, transparent 3px),
+      radial-gradient(circle at 18% 58%, rgba(18, 38, 29, 0.08) 0 1.6px, transparent 3px),
+      radial-gradient(circle at 88% 48%, rgba(68, 93, 76, 0.1) 0 1.6px, transparent 3px),
+      radial-gradient(circle at 42% 84%, rgba(18, 38, 29, 0.08) 0 1.6px, transparent 3px);
+    opacity: 0.38;
+  }
+
+  .energy-home-page-clean .energy-space-stars::before {
+    opacity: 0.24;
+  }
+
+  .energy-home-page-clean .energy-space-stars::after {
+    opacity: 0.16;
+  }
+
+  .energy-home-page-clean .energy-space-layer-nebula {
+    background:
+      radial-gradient(circle at 74% 14%, rgba(112, 161, 120, 0.2), transparent 16%),
+      radial-gradient(circle at 18% 22%, rgba(238, 193, 112, 0.18), transparent 18%),
+      radial-gradient(circle at 68% 68%, rgba(242, 164, 117, 0.16), transparent 18%);
+    filter: blur(22px);
+    opacity: 0.68;
+  }
+
+  .energy-home-page-clean .energy-space-cursor-aura {
+    background: radial-gradient(circle, rgba(130, 175, 138, 0.18) 0%, rgba(245, 197, 121, 0.14) 36%, rgba(255, 255, 255, 0.04) 70%, transparent 100%);
+    filter: blur(24px);
+    mix-blend-mode: multiply;
+    opacity: 0.78;
+  }
+
+  .energy-home-page-clean .energy-home-haze {
+    background:
+      radial-gradient(circle at 22% 32%, rgba(240, 193, 108, 0.16), transparent 18%),
+      radial-gradient(circle at 78% 22%, rgba(122, 163, 127, 0.14), transparent 18%),
+      radial-gradient(circle at 64% 78%, rgba(240, 159, 122, 0.12), transparent 16%);
+    filter: blur(22px);
+    opacity: 0.6;
+  }
+
+  .energy-home-page-clean .energy-home-depth-field {
+    background:
+      radial-gradient(circle at 18% 24%, rgba(145, 182, 146, 0.12), transparent 18%),
+      radial-gradient(circle at 78% 22%, rgba(244, 198, 122, 0.16), transparent 18%),
+      radial-gradient(circle at 54% 74%, rgba(104, 139, 111, 0.12), transparent 20%);
+    filter: blur(26px);
+    opacity: 0.48;
+  }
+
+  .energy-home-clean-nav {
+    border: 1px solid rgba(203, 214, 198, 0.96);
+    background: rgba(255, 252, 246, 0.52);
+    box-shadow: 0 28px 60px -48px rgba(31, 47, 37, 0.28);
+    backdrop-filter: blur(12px);
+  }
+
+  .energy-home-clean-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    border-radius: 999px;
+    border: 1px solid rgba(219, 222, 208, 0.95);
+    background: rgba(255, 250, 240, 0.68);
+    padding: 0.72rem 1rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #7b6330;
+    box-shadow: 0 18px 40px -34px rgba(31, 47, 37, 0.22);
+    backdrop-filter: blur(8px);
+  }
+
+  .energy-home-primary-button,
+  .energy-home-secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    border-radius: 18px;
+    padding: 0.95rem 1.45rem;
+    font-size: 1rem;
+    font-weight: 700;
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease,
+      border-color 0.3s ease,
+      background-color 0.3s ease;
+  }
+
+  .energy-home-primary-button {
+    color: white;
+    background: linear-gradient(180deg, #173324 0%, #10261d 100%);
+    box-shadow: 0 28px 54px -34px rgba(16, 38, 29, 0.46);
+  }
+
+  .energy-home-primary-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 32px 62px -34px rgba(16, 38, 29, 0.54);
+  }
+
+  .energy-home-secondary-button {
+    border: 1px solid rgba(209, 218, 205, 0.95);
+    background: rgba(255, 255, 255, 0.66);
+    color: #173324;
+    box-shadow: 0 18px 40px -34px rgba(31, 47, 37, 0.18);
+    backdrop-filter: blur(8px);
+  }
+
+  .energy-home-secondary-button:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.82);
+  }
+
+  .energy-home-page-clean .energy-home-copy {
+    max-width: 690px;
+  }
+
+  .energy-home-clean-scene {
+    position: relative;
+    min-height: 520px;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+
+  .energy-home-preview-stack {
+    position: relative;
+    height: 100%;
+    min-height: 520px;
+  }
+
+  .energy-home-preview-backdrop {
+    position: absolute;
+    right: 2%;
+    top: 14%;
+    width: min(100%, 490px);
+    min-height: 410px;
+    border-radius: 40px;
+    border: 1px solid rgba(205, 219, 202, 0.74);
+    background: linear-gradient(180deg, rgba(55, 104, 72, 0.9) 0%, rgba(75, 122, 90, 0.82) 100%);
+    box-shadow: 0 48px 90px -60px rgba(34, 58, 44, 0.52);
+  }
+
+  .energy-home-preview-backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 18px;
+    border-radius: 30px;
+    border: 1px solid rgba(235, 244, 231, 0.22);
+  }
+
+  .energy-home-preview-backdrop-secondary {
+    right: -2%;
+    top: 20%;
+    width: min(100%, 470px);
+    min-height: 390px;
+    background: linear-gradient(180deg, rgba(70, 118, 86, 0.22) 0%, rgba(235, 171, 125, 0.52) 100%);
+    border-color: rgba(238, 197, 164, 0.52);
+    filter: blur(0.2px);
+  }
+
+  .energy-home-preview-card {
+    position: absolute;
+    right: 8%;
+    top: 4%;
+    width: min(100%, 560px);
+    border-radius: 34px;
+    border: 1px solid rgba(219, 224, 214, 0.92);
+    background: rgba(255, 251, 245, 0.92);
+    padding: 1.7rem;
+    box-shadow: 0 42px 90px -56px rgba(32, 49, 39, 0.42);
+    backdrop-filter: blur(14px);
+  }
+
+  .energy-home-preview-kicker {
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: #8d958a;
+  }
+
+  .energy-home-preview-title {
+    margin-top: 0.85rem;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: clamp(2.1rem, 3vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.06em;
+    color: #10261d;
+  }
+
+  .energy-home-preview-mode {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    border-radius: 28px;
+    border: 1px solid rgba(223, 229, 219, 0.96);
+    padding: 1.2rem 1.1rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  }
+
+  .energy-home-preview-mode-fast {
+    background: linear-gradient(180deg, rgba(250, 254, 250, 0.94) 0%, rgba(247, 250, 246, 0.96) 100%);
+  }
+
+  .energy-home-preview-mode-auto {
+    background: linear-gradient(180deg, rgba(252, 247, 233, 0.96) 0%, rgba(249, 241, 220, 0.98) 100%);
+  }
+
+  .energy-home-preview-mode-deep {
+    background: linear-gradient(180deg, rgba(252, 241, 236, 0.96) 0%, rgba(249, 233, 228, 0.98) 100%);
+  }
+
+  .energy-home-preview-footer {
+    margin-top: 1rem;
+    border-radius: 26px;
+    background: linear-gradient(180deg, #173324 0%, #10261d 100%);
+    padding: 1rem 1.1rem;
+    box-shadow: 0 30px 56px -40px rgba(16, 38, 29, 0.52);
+  }
+
+  .energy-home-preview-footer span {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: rgba(232, 241, 232, 0.52);
+  }
+
+  .energy-home-preview-footer strong {
+    display: block;
+    margin-top: 0.7rem;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1.8rem;
+    line-height: 1.12;
+    letter-spacing: -0.05em;
+    color: white;
+  }
+
+  .energy-home-mode-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    padding: 0.72rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    box-shadow: 0 16px 38px -30px rgba(31, 47, 37, 0.24);
+  }
+
+  .energy-home-mode-pill-fast {
+    border: 1px solid rgba(183, 216, 191, 0.96);
+    background: rgba(245, 251, 246, 0.72);
+    color: #48725b;
+  }
+
+  .energy-home-mode-pill-auto {
+    border: 1px solid rgba(233, 215, 162, 0.98);
+    background: rgba(252, 246, 230, 0.82);
+    color: #9a7532;
+  }
+
+  .energy-home-mode-pill-deep {
+    border: 1px solid rgba(239, 201, 197, 0.96);
+    background: rgba(251, 239, 235, 0.82);
+    color: #bb5f58;
+  }
+
+  .energy-home-clean-feature {
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    border: 1px solid rgba(214, 222, 209, 0.92);
+    padding: 1.35rem;
+    background: rgba(255, 252, 246, 0.76);
+    box-shadow: 0 28px 56px -44px rgba(31, 47, 37, 0.28);
+    backdrop-filter: blur(10px);
+    transition:
+      transform 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .energy-home-clean-feature:hover {
+    transform: translateY(-2px);
+    border-color: rgba(164, 188, 170, 0.98);
+    box-shadow: 0 32px 64px -46px rgba(31, 47, 37, 0.32);
+  }
+
+  .energy-home-clean-feature-fast {
+    background:
+      radial-gradient(circle at top right, rgba(194, 230, 204, 0.4), transparent 34%),
+      rgba(255, 252, 246, 0.82);
+  }
+
+  .energy-home-clean-feature-auto {
+    background:
+      radial-gradient(circle at top right, rgba(243, 221, 163, 0.34), transparent 34%),
+      rgba(255, 252, 246, 0.82);
+  }
+
+  .energy-home-clean-feature-deep {
+    background:
+      radial-gradient(circle at top right, rgba(245, 198, 191, 0.34), transparent 34%),
+      rgba(255, 252, 246, 0.82);
+  }
+
   .energy-auth-stage {
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.06),
@@ -1683,6 +2004,69 @@ body::after {
 }
 
 @media (max-width: 767px) {
+  .energy-home-page-clean {
+    background:
+      radial-gradient(circle at 10% 14%, rgba(241, 199, 96, 0.22), transparent 24%),
+      radial-gradient(circle at 84% 14%, rgba(157, 198, 160, 0.18), transparent 24%),
+      linear-gradient(180deg, #f8f4eb 0%, #f6f0e4 100%);
+  }
+
+  .energy-home-clean-nav {
+    background: rgba(255, 251, 245, 0.82);
+  }
+
+  .energy-home-clean-badge {
+    padding: 0.65rem 0.9rem;
+    font-size: 0.72rem;
+  }
+
+  .energy-home-primary-button,
+  .energy-home-secondary-button {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+  }
+
+  .energy-home-clean-scene,
+  .energy-home-preview-stack {
+    min-height: 420px;
+  }
+
+  .energy-home-preview-backdrop {
+    left: 4%;
+    right: 4%;
+    top: 18%;
+    width: auto;
+    min-height: 300px;
+  }
+
+  .energy-home-preview-backdrop-secondary {
+    top: 23%;
+    left: 10%;
+    right: 0;
+  }
+
+  .energy-home-preview-card {
+    left: 7%;
+    right: 7%;
+    top: 0;
+    width: auto;
+    padding: 1.15rem;
+  }
+
+  .energy-home-preview-title {
+    font-size: 2rem;
+  }
+
+  .energy-home-preview-mode {
+    gap: 0.8rem;
+    border-radius: 24px;
+    padding: 0.95rem;
+  }
+
+  .energy-home-preview-footer strong {
+    font-size: 1.3rem;
+  }
+
   .energy-app-topbar {
     min-height: 4rem;
     backdrop-filter: blur(18px);
@@ -1763,6 +2147,11 @@ body::after {
     display: none;
   }
 
+  .energy-home-mode-pill {
+    width: 100%;
+    justify-content: center;
+  }
+
   .energy-space-badge,
   .energy-home-stat,
   .energy-intel-badge,
@@ -1772,6 +2161,16 @@ body::after {
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
+  .energy-home-preview-card {
+    right: 4%;
+    width: min(100%, 510px);
+  }
+
+  .energy-home-preview-backdrop {
+    right: 0;
+    width: min(100%, 450px);
+  }
+
   .energy-app-topbar {
     gap: 0.7rem;
     padding-top: 0.65rem;

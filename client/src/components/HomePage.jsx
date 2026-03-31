@@ -1,33 +1,52 @@
-import { ArrowRight, Cpu, Flame, Leaf, Radar, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Clock3, Flame, Leaf, Sparkles } from "lucide-react";
 import { useEffect, useRef } from "react";
-import EnergyBrand, { EnergyLogo } from "./EnergyBrand";
-import RobotStage from "./RobotStage";
+import EnergyBrand from "./EnergyBrand";
 
 function CTAButton({ filled = false, children, onClick }) {
   return (
-    <button type="button" onClick={onClick} className={filled ? "energy-space-primary" : "energy-space-secondary"}>
+    <button type="button" onClick={onClick} className={filled ? "energy-home-primary-button" : "energy-home-secondary-button"}>
       {children}
     </button>
   );
 }
 
 function FeatureCard({ icon: Icon, title, body, tone }) {
-  const accentClass =
+  const toneClass =
     tone === "deep"
-      ? "from-[#6d28d9]/30 to-[#06b6d4]/10"
+      ? "group energy-home-clean-feature energy-home-clean-feature-deep"
       : tone === "fast"
-        ? "from-[#06b6d4]/28 to-transparent"
-        : "from-[#7c3aed]/26 to-transparent";
+        ? "group energy-home-clean-feature energy-home-clean-feature-fast"
+        : "group energy-home-clean-feature energy-home-clean-feature-auto";
 
   return (
-    <article className="group relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-white/18">
-      <div className={`absolute inset-0 bg-gradient-to-br ${accentClass}`} />
+    <article className={toneClass}>
       <div className="relative z-10">
-        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/12 bg-white/8 text-white transition duration-300 group-hover:scale-105">
+        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#d7dfd2] bg-white/80 text-[#294437] shadow-[0_18px_40px_-32px_rgba(18,38,29,0.42)] transition duration-300 group-hover:scale-105">
           <Icon size={18} />
         </span>
-        <h3 className="mt-4 font-display text-2xl font-bold tracking-[-0.04em] text-white">{title}</h3>
-        <p className="mt-2 text-sm leading-7 text-white/62">{body}</p>
+        <h3 className="mt-4 font-display text-2xl font-bold tracking-[-0.04em] text-[#13291f]">{title}</h3>
+        <p className="mt-2 text-sm leading-7 text-[#516457]">{body}</p>
+      </div>
+    </article>
+  );
+}
+
+function ModePreviewCard({ icon: Icon, title, body, tone }) {
+  const toneClass =
+    tone === "fast"
+      ? "energy-home-preview-mode energy-home-preview-mode-fast"
+      : tone === "deep"
+        ? "energy-home-preview-mode energy-home-preview-mode-deep"
+        : "energy-home-preview-mode energy-home-preview-mode-auto";
+
+  return (
+    <article className={toneClass}>
+      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#dde6d9] bg-white/85 text-[#365b4a]">
+        <Icon size={17} />
+      </span>
+      <div className="min-w-0">
+        <h3 className="text-[1.08rem] font-semibold tracking-[-0.03em] text-[#183124]">{title}</h3>
+        <p className="mt-1 text-sm leading-7 text-[#627568]">{body}</p>
       </div>
     </article>
   );
@@ -168,7 +187,7 @@ export default function HomePage({ isAuthenticated, user, onNavigate }) {
   }, []);
 
   return (
-    <main ref={pageRef} className="energy-space-page relative min-h-screen overflow-hidden">
+    <main ref={pageRef} className="energy-home-page-clean relative min-h-screen overflow-hidden">
       <div className="energy-space-stars energy-space-layer energy-space-layer-stars opacity-95" />
       <div ref={nebulaRef} className="energy-space-nebula energy-space-layer energy-space-layer-nebula" />
       <div ref={auraRef} className="energy-space-cursor-aura" />
@@ -176,13 +195,17 @@ export default function HomePage({ isAuthenticated, user, onNavigate }) {
       <div ref={depthFieldRef} className="energy-home-depth-field energy-space-layer" />
 
       <section className="energy-home-shell relative mx-auto flex min-h-screen w-full max-w-[1480px] flex-col px-0 pb-6 pt-0 sm:px-6 sm:pb-8 sm:pt-4">
-        <header className="energy-space-nav animate-page-in flex flex-wrap items-center justify-between gap-4 rounded-none border-x-0 border-t-0 px-4 py-3 sm:rounded-[26px] sm:border sm:px-4">
-          <EnergyBrand size={48} titleClassName="text-xl sm:text-[1.35rem]" subtitleClassName="text-[10px] sm:text-[11px]" />
+        <header className="energy-home-clean-nav animate-page-in flex flex-wrap items-center justify-between gap-4 rounded-none border-x-0 border-t-0 px-4 py-3 sm:rounded-[26px] sm:border sm:px-5">
+          <EnergyBrand
+            size={48}
+            titleClassName="text-xl sm:text-[1.35rem] text-[#183124]"
+            subtitleClassName="text-[10px] sm:text-[11px] text-[#7d8d7e]"
+          />
 
           <div className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
             {isAuthenticated ? (
               <>
-                <span className="energy-space-badge justify-center">{user?.name || "Signed in"}</span>
+                <span className="energy-home-clean-badge justify-center">{user?.name || "Signed in"}</span>
                 {user?.isAdmin ? <CTAButton onClick={() => onNavigate("admin")}>Admin</CTAButton> : null}
                 <CTAButton onClick={() => onNavigate("analytics")}>Analytics</CTAButton>
                 <CTAButton filled onClick={() => onNavigate("chat")}>
@@ -202,99 +225,91 @@ export default function HomePage({ isAuthenticated, user, onNavigate }) {
           </div>
         </header>
 
-        <section className="energy-home-hero-grid relative grid flex-1 items-center gap-10 overflow-hidden px-4 pb-10 pt-8 lg:grid-cols-[0.94fr_1.06fr] lg:gap-14">
+        <section className="energy-home-hero-grid relative grid flex-1 items-center gap-10 overflow-hidden px-4 pb-10 pt-8 lg:grid-cols-[0.96fr_1.04fr] lg:gap-14">
           <div ref={copyRef} className="energy-home-copy max-w-2xl text-left">
-            <div className="energy-space-badge animate-rise">
+            <div className="energy-home-clean-badge animate-rise">
               <Sparkles size={14} />
-              Adaptive local intelligence
+              One AI system. Three energy levels.
             </div>
 
-            <h1 className="mt-8 animate-rise energy-stagger-1 font-display text-5xl font-bold tracking-[-0.07em] text-white sm:text-7xl lg:text-[6.2rem]">
-              <span className="flex items-center gap-4 sm:gap-5">
-                <EnergyLogo size={60} className="sm:h-[78px] sm:w-[78px]" />
-                <span>Energy AI</span>
-              </span>
-              <span className="mt-3 block bg-[linear-gradient(135deg,#8b5cf6_0%,#6366f1_34%,#38bdf8_68%,#67e8f9_100%)] bg-clip-text text-transparent">
-                beautifully fast. seriously deep.
-              </span>
+            <h1 className="mt-8 animate-rise energy-stagger-1 font-display text-[3.35rem] font-bold tracking-[-0.08em] text-[#10261d] sm:text-7xl lg:text-[6.15rem]">
+              <span className="block">The right answer at the</span>
+              <span className="block text-[#132b21]">right speed.</span>
             </h1>
 
-            <p className="mt-6 max-w-xl animate-rise energy-stagger-2 text-base leading-8 text-white/56 sm:text-xl">
-              A dark AI workspace that stays quick for simple prompts and spends more reasoning only when the work deserves it.
+            <p className="mt-6 max-w-xl animate-rise energy-stagger-2 text-base leading-8 text-[#5f7064] sm:text-[1.36rem]">
+              Energy AI answers simple prompts in Low-Energy mode, switches to High-Energy mode for harder reasoning, and uses Auto Balance to decide when speed matters more than depth.
             </p>
 
             <div className="mt-10 flex animate-rise energy-stagger-3 flex-col gap-3 sm:flex-row">
               <CTAButton filled onClick={() => onNavigate(isAuthenticated ? "chat" : "signup")}>
-                {isAuthenticated ? "Open Workspace" : "Launch Energy AI"}
+                {isAuthenticated ? "Open Workspace" : "Start now"}
                 <ArrowRight size={16} />
               </CTAButton>
               <CTAButton onClick={() => onNavigate(isAuthenticated ? "analytics" : "login")}>
-                {isAuthenticated ? "See Analytics" : "Login"}
+                {isAuthenticated ? "See Analytics" : "Sign in"}
               </CTAButton>
             </div>
 
-            <div className="mt-10 grid animate-rise energy-stagger-4 gap-3 sm:grid-cols-3">
-              <div className="energy-home-stat">
-                <span>low energy</span>
-                <strong>fast answers</strong>
-              </div>
-              <div className="energy-home-stat">
-                <span>adaptive</span>
-                <strong>smart routing</strong>
-              </div>
-              <div className="energy-home-stat">
-                <span>high energy</span>
-                <strong>deep work</strong>
-              </div>
-            </div>
-
-            <div className="mt-8 flex animate-rise energy-stagger-5 flex-wrap gap-3">
-              <span className="energy-space-badge">
+            <div className="mt-8 flex animate-rise energy-stagger-4 flex-wrap gap-3">
+              <span className="energy-home-mode-pill energy-home-mode-pill-fast">
                 <Leaf size={14} />
-                low energy
+                Low Energy
               </span>
-              <span className="energy-space-badge">
-                <Cpu size={14} />
-                adaptive core
+              <span className="energy-home-mode-pill energy-home-mode-pill-auto">
+                <Clock3 size={14} />
+                Auto Balance
               </span>
-              <span className="energy-space-badge">
+              <span className="energy-home-mode-pill energy-home-mode-pill-deep">
                 <Flame size={14} />
-                high energy
+                High Energy
               </span>
             </div>
           </div>
 
-          <div ref={heroSceneRef} className="energy-home-scene animate-page-in energy-stagger-2">
-            <div
-              className="energy-home-float left-[3%] top-[12%] hidden lg:inline-flex"
-              style={{ "--energy-float-x": "-0.34", "--energy-float-y": "-0.22" }}
-            >
-              <Sparkles size={14} />
-              source grounded
-            </div>
-            <div
-              className="energy-home-float right-[2%] top-[20%] hidden lg:inline-flex"
-              style={{ "--energy-float-x": "0.32", "--energy-float-y": "-0.16" }}
-            >
-              <Radar size={14} />
-              cursor reactive
-            </div>
-            <div
-              className="energy-home-float bottom-[14%] left-[8%] hidden lg:inline-flex"
-              style={{ "--energy-float-x": "-0.24", "--energy-float-y": "0.2" }}
-            >
-              <Zap size={14} />
-              live orchestration
-            </div>
+          <div ref={heroSceneRef} className="energy-home-clean-scene animate-page-in energy-stagger-2">
             <div ref={stageWrapRef} className="energy-home-stage-wrap">
-              <RobotStage fullBleed className="energy-home-stage" />
+              <div className="energy-home-preview-stack energy-home-stage">
+                <div className="energy-home-preview-backdrop" />
+                <div className="energy-home-preview-backdrop energy-home-preview-backdrop-secondary" />
+                <div className="energy-home-preview-card">
+                  <p className="energy-home-preview-kicker">Model preview</p>
+                  <h2 className="energy-home-preview-title">Choose speed. Keep depth.</h2>
+
+                  <div className="mt-5 space-y-3">
+                    <ModePreviewCard
+                      icon={Leaf}
+                      title="Low-Energy"
+                      body="Built for direct questions, short tasks, and faster response time."
+                      tone="fast"
+                    />
+                    <ModePreviewCard
+                      icon={Clock3}
+                      title="Auto Balance"
+                      body="Routes the prompt automatically so easy work stays fast and hard work gets more thinking time."
+                      tone="auto"
+                    />
+                    <ModePreviewCard
+                      icon={Flame}
+                      title="High-Energy"
+                      body="Uses more reasoning time for coding, debugging, planning, architecture, and deeper analysis."
+                      tone="deep"
+                    />
+                  </div>
+
+                  <div className="energy-home-preview-footer">
+                    <span>Energy AI</span>
+                    <strong>Fast for the easy parts. Deep for the important parts.</strong>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         <section className="energy-home-feature-grid grid gap-4 px-4 pb-8 md:grid-cols-3 md:px-0">
-          <FeatureCard icon={Leaf} title="Low Energy" body="Direct prompts stay lean and immediate." tone="fast" />
-          <FeatureCard icon={Cpu} title="Adaptive Core" body="The router decides when to stay light and when to think longer." tone="auto" />
+          <FeatureCard icon={Leaf} title="Low Energy" body="Direct questions stay clean, fast, and immediate." tone="fast" />
+          <FeatureCard icon={Clock3} title="Auto Balance" body="The router decides when to stay light and when to think longer." tone="auto" />
           <FeatureCard icon={Flame} title="High Energy" body="Debugging and complex coding get the deeper pass." tone="deep" />
         </section>
       </section>
