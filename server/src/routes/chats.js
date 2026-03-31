@@ -1,15 +1,28 @@
 import express from "express";
 import { cloneSessions, readDb, updateDb } from "../services/dataStore.js";
+import { sanitizeAttachments } from "../services/attachmentContext.js";
+import { recordFeedbackTrainingPair } from "../services/autoTrainService.js";
 import { requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 
 function sanitizeMessage(message) {
+  const meta = message?.meta && typeof message.meta === "object" ? { ...message.meta } : undefined;
+  const attachments = sanitizeAttachments(meta?.attachments);
+
+  if (meta) {
+    if (attachments.length > 0) {
+      meta.attachments = attachments;
+    } else {
+      delete meta.attachments;
+    }
+  }
+
   return {
     id: String(message?.id || ""),
     role: String(message?.role || "assistant"),
     content: String(message?.content || ""),
-    meta: message?.meta && typeof message.meta === "object" ? message.meta : undefined
+    meta
   };
 }
 
@@ -49,6 +62,40 @@ router.put("/", requireAuth, async (req, res, next) => {
     return res.json({
       ok: true,
       sessions
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/feedback", requireAuth, async (req, res, next) => {
+  try {
+    const prompt = String(req.body?.prompt || "").trim();
+    const completion = String(req.body?.completion || "").trim();
+    const replacement = String(req.body?.replacement || "").trim();
+    const feedback = String(req.body?.feedback || "").trim().toLowerCase();
+    const meta = req.body?.meta && typeof req.body.meta === "object" ? req.body.meta : {};
+
+    if (!prompt || !completion) {
+      return res.status(400).json({ error: "`prompt` and `completion` are required." });
+    }
+
+    if (!["up", "down"].includes(feedback)) {
+      return res.status(400).json({ error: "`feedback` must be either `up` or `down`." });
+    }
+
+    const result = await recordFeedbackTrainingPair({
+      prompt,
+      completion,
+      feedback,
+      replacement,
+      meta
+    });
+
+    return res.json({
+      ok: true,
+      recorded: result.recorded,
+      trained: result.trained
     });
   } catch (error) {
     return next(error);

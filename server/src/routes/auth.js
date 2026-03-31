@@ -9,7 +9,7 @@ import {
   verifyEmailToken
 } from "../services/authService.js";
 import { sendPasswordResetEmail, sendVerificationEmail } from "../services/emailService.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAnyAuth, requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -77,7 +77,7 @@ router.get("/me", requireAuth, async (req, res) => {
   res.json({ user: req.user });
 });
 
-router.post("/logout", requireAuth, async (req, res, next) => {
+router.post("/logout", requireAnyAuth, async (req, res, next) => {
   try {
     await revokeSession(req.authToken);
     return res.json({ ok: true });
@@ -89,14 +89,23 @@ router.post("/logout", requireAuth, async (req, res, next) => {
 router.post("/verify-email", async (req, res, next) => {
   try {
     const token = readBodyField(req.body, "token");
+    const email = readBodyField(req.body, "email");
     if (!token) {
       return res.status(400).json({ error: "Verification token is required." });
     }
 
-    const user = await verifyEmailToken(token);
+    const result = await verifyEmailToken(token, email);
     return res.json({
       ok: true,
-      user
+      user: {
+        id: result.id,
+        name: result.name,
+        email: result.email,
+        emailVerified: result.emailVerified,
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt
+      },
+      alreadyVerified: Boolean(result.alreadyVerified)
     });
   } catch (error) {
     return next(error);

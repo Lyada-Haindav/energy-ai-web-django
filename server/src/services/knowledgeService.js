@@ -1,7 +1,9 @@
 const ENABLE_WEB_KNOWLEDGE = (process.env.ENABLE_WEB_KNOWLEDGE || "true").toLowerCase() !== "false";
-const KNOWLEDGE_TIMEOUT_MS = Number(process.env.KNOWLEDGE_TIMEOUT_MS || 2800);
+const KNOWLEDGE_TIMEOUT_MS = Number(process.env.KNOWLEDGE_TIMEOUT_MS || 800);
 const KNOWLEDGE_MAX_CHARS = Number(process.env.KNOWLEDGE_MAX_CHARS || 2600);
-const SEARCH_RESULTS_PER_QUERY = Number(process.env.KNOWLEDGE_SEARCH_RESULTS || 4);
+const SEARCH_RESULTS_PER_QUERY = Number(process.env.KNOWLEDGE_SEARCH_RESULTS || 2);
+const KNOWLEDGE_CACHE_TTL_MS = Number(process.env.KNOWLEDGE_CACHE_TTL_MS || 5 * 60 * 1000);
+const knowledgeCache = new Map();
 
 const SKIP_PATTERNS = [
   /^\s*$/,
@@ -261,6 +263,31 @@ function simplifySearchTopic(query, profile) {
 
 function searchProfileFromIntent(intent = null) {
   return intent?.searchProfile || "reference";
+}
+
+function cacheKeyFor(profile, query) {
+  return `${profile}:${normalizeQueryText(query).toLowerCase()}`;
+}
+
+function readKnowledgeCache(profile, query) {
+  const key = cacheKeyFor(profile, query);
+  const cached = knowledgeCache.get(key);
+  if (!cached) {
+    return null;
+  }
+  if (cached.expiresAt <= Date.now()) {
+    knowledgeCache.delete(key);
+    return null;
+  }
+  return cached.value;
+}
+
+function writeKnowledgeCache(profile, query, value) {
+  knowledgeCache.set(cacheKeyFor(profile, query), {
+    value,
+    expiresAt: Date.now() + KNOWLEDGE_CACHE_TTL_MS
+  });
+  return value;
 }
 
 function scoreCatalogEntry(entry, query, profile = "reference") {
@@ -624,6 +651,11 @@ export async function fetchKnowledgeContext(query, options = {}) {
     return { contextText: "", sources: [] };
   }
 
+  const cached = readKnowledgeCache(profile, topicQuery || searchQueries[0]);
+  if (cached) {
+    return cached;
+  }
+
   let rawSnippets = [];
 
   if (profile === "builder") {
@@ -631,13 +663,16 @@ export async function fetchKnowledgeContext(query, options = {}) {
     rawSnippets = curated.slice(0, 5);
   } else if (profile === "reference") {
     const primaryQuery = searchQueries[0];
-    const [wiki, duck, web] = await Promise.all([
+    const [wiki, duck] = await Promise.all([
       fetchWikipediaSnippet(primaryQuery),
-      fetchDuckDuckGoSnippet(primaryQuery),
-      fetchBingWebResults(primaryQuery, 3)
+      fetchDuckDuckGoSnippet(primaryQuery)
     ]);
 
-    rawSnippets = [wiki, duck, ...web].filter(Boolean);
+    rawSnippets = [wiki, duck].filter(Boolean);
+    if (rawSnippets.length === 0) {
+      const web = await fetchBingWebResults(primaryQuery, 2);
+      rawSnippets = web.filter(Boolean);
+    }
   } else {
     const curated = profile === "download" ? curatedMatches(query, CURATED_DOWNLOADS, profile) : [];
     if (profile === "download" && curated.length > 0) {
@@ -655,8 +690,8 @@ export async function fetchKnowledgeContext(query, options = {}) {
   const ranked = rankSnippets(dedupeSnippets(rawSnippets), profile, topicQuery || searchQueries[0]);
   const limited = ranked.slice(0, profile === "reference" ? 4 : 5);
 
-  return {
+  return writeKnowledgeCache(profile, topicQuery || searchQueries[0], {
     contextText: compactContext(limited, profile),
     sources: limited.map((snippet) => ({ title: snippet.title, url: snippet.url, text: snippet.text }))
-  };
+  });
 }

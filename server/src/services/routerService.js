@@ -1,4 +1,6 @@
 import { classifyRoute } from "./modelClient.js";
+import { normalizeNaturalLanguageText } from "./textNormalization.js";
+import { normalizeWorkspaceMode, workspaceModeLabel, workspaceModeRequiresDeep } from "./workspaceMode.js";
 
 const ASSISTANT_META_PATTERN =
   /^(what(?:'s| is)\s+your\s+name|who\s+are\s+you|which\s+model\s+are\s+you|which\s+model\s+you\s+are|what\s+is\s+your\s+model\s+name|what\s+model\s+are\s+you)\??$/i;
@@ -11,13 +13,24 @@ const CONTEST_PATTERN =
 const SIMPLE_CODE_TASK_PATTERN = /\b(code|function|program|script)\b/i;
 const ADD_TWO_NUMBERS_PATTERN = /\badd(?:ing|ng)?\b.*\b(two|2|number|numbers|bumber|bumbers)\b/i;
 const SHORT_CODE_FOLLOWUP_PATTERN = /^(code|show code|give code|send code)\b/i;
+const TECHNICAL_DEEP_PATTERN =
+  /\b(debug|bug|fix|refactor|optimi[sz]e|architecture|design|implement|build|create|deploy|database|schema|auth|authentication|api|backend|frontend|full[-\s]?stack|react|next\.?js|node|express|typescript|javascript|python|java|c\+\+|sql|docker|kubernetes|responsive|mobile|training|model|algorithm|binary search|complexity|graph|tree|recursion|dynamic programming|system design|performance)\b/i;
+const TRIVIAL_CODE_PATTERN =
+  /\b(hello world|reverse string|palindrome|factorial|fibonacci|prime number|swap two numbers|add two numbers)\b/i;
+const ATTACHMENT_MARKER_PATTERN = /\[ATTACHED_FILES\][\s\S]*?\[\/ATTACHED_FILES\]/g;
+const FILE_FOLLOWUP_PATTERN =
+  /\b(file|attached|attachment|html|page|review|inspect|check|explain|structure|layout|improve|responsive|responsiveness|accessibility|code quality|bug|issue|fix)\b/i;
 
 function normalizeInput(text) {
-  return String(text || "")
+  return normalizeNaturalLanguageText(text)
     .trim()
     .replace(/^[^A-Za-z0-9]+/, "")
     .replace(/[^A-Za-z0-9]+$/, "")
     .trim();
+}
+
+function stripAttachmentContext(text) {
+  return String(text || "").replace(ATTACHMENT_MARKER_PATTERN, " ").replace(/\s+/g, " ").trim();
 }
 
 function countWords(text) {
@@ -83,7 +96,36 @@ function isSimpleCodeTask(text, previousText = "") {
   if (ADD_TWO_NUMBERS_PATTERN.test(trimmed) && (SIMPLE_CODE_TASK_PATTERN.test(trimmed) || words <= 10)) {
     return true;
   }
-  return words <= 10 && SIMPLE_CODE_TASK_PATTERN.test(trimmed);
+  if (TECHNICAL_DEEP_PATTERN.test(trimmed) && !TRIVIAL_CODE_PATTERN.test(trimmed)) {
+    return false;
+  }
+  return TRIVIAL_CODE_PATTERN.test(trimmed) || (words <= 5 && SIMPLE_CODE_TASK_PATTERN.test(trimmed));
+}
+
+function shouldForceDeepTechnicalRoute(text, previousText = "", intent = null) {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return false;
+  }
+
+  if (intent?.type === "contest") {
+    return true;
+  }
+
+  if (intent?.type === "coding") {
+    if (intent.needsDepth || intent.previousIsMeaningful || intent.words > 6) {
+      return true;
+    }
+    if (TECHNICAL_DEEP_PATTERN.test(trimmed)) {
+      return true;
+    }
+  }
+
+  if (TECHNICAL_DEEP_PATTERN.test(trimmed) && !isSimpleCodeTask(trimmed, previousText)) {
+    return true;
+  }
+
+  return false;
 }
 
 function energyMeta(targetRole) {
@@ -98,13 +140,18 @@ function energyMeta(targetRole) {
       };
 }
 
-export async function chooseRoute({ messages, mode, intent = null }) {
+export async function chooseRoute({ messages, mode, intent = null, workspaceMode = "general" }) {
   const userMessages = messages.filter((m) => m.role === "user");
   const latestUser = userMessages[userMessages.length - 1];
   const previousUser = userMessages[userMessages.length - 2];
-  const latestText = latestUser?.content || "";
-  const previousText = previousUser?.content || "";
+  const latestRawText = latestUser?.content || "";
+  const previousRawText = previousUser?.content || "";
+  const latestText = stripAttachmentContext(latestRawText);
+  const previousText = stripAttachmentContext(previousRawText);
   const normalizedLatestText = normalizeInput(latestText);
+  const hasLatestAttachmentContext = ATTACHMENT_MARKER_PATTERN.test(latestRawText);
+  const recentAttachmentContext = userMessages.slice(-3).some((message) => ATTACHMENT_MARKER_PATTERN.test(message.content || ""));
+  const effectiveWorkspaceMode = normalizeWorkspaceMode(workspaceMode || intent?.workspaceMode);
 
   if (mode === "fast") {
     return {
@@ -120,6 +167,15 @@ export async function chooseRoute({ messages, mode, intent = null }) {
       targetRole: "deep",
       modelLabel: process.env.DEEP_MODEL || "deep-model",
       reason: "manual high-energy mode",
+      ...energyMeta("deep")
+    };
+  }
+
+  if (workspaceModeRequiresDeep(effectiveWorkspaceMode)) {
+    return {
+      targetRole: "deep",
+      modelLabel: process.env.DEEP_MODEL || "deep-model",
+      reason: `workspace mode: ${workspaceModeLabel(effectiveWorkspaceMode)} -> high energy`,
       ...energyMeta("deep")
     };
   }
@@ -146,12 +202,39 @@ export async function chooseRoute({ messages, mode, intent = null }) {
     };
   }
 
+  if (hasLatestAttachmentContext) {
+    return {
+      targetRole: "deep",
+      modelLabel: process.env.DEEP_MODEL || "deep-model",
+      reason: "auto balance: attached file context -> high energy",
+      ...energyMeta("deep")
+    };
+  }
+
+  if (recentAttachmentContext && FILE_FOLLOWUP_PATTERN.test(latestText)) {
+    return {
+      targetRole: "deep",
+      modelLabel: process.env.DEEP_MODEL || "deep-model",
+      reason: "auto balance: attached file follow-up -> high energy",
+      ...energyMeta("deep")
+    };
+  }
+
   if (isSimpleCodeTask(latestText, previousText)) {
     return {
       targetRole: "fast",
       modelLabel: process.env.FAST_MODEL || "fast-model",
       reason: "auto balance: simple code task -> low energy",
       ...energyMeta("fast")
+    };
+  }
+
+  if (shouldForceDeepTechnicalRoute(latestText, previousText, intent)) {
+    return {
+      targetRole: "deep",
+      modelLabel: process.env.DEEP_MODEL || "deep-model",
+      reason: `auto balance: technical prompt (${intent?.type || "general"}) -> high energy`,
+      ...energyMeta("deep")
     };
   }
 

@@ -6,6 +6,12 @@ const scryptAsync = promisify(crypto.scrypt);
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 const EMAIL_TOKEN_TTL_MS = 1000 * 60 * 60 * 24;
 const RESET_TOKEN_TTL_MS = 1000 * 60 * 30;
+const ADMIN_EMAILS = new Set(
+  String(process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((email) => normalizeEmail(email))
+    .filter(Boolean)
+);
 
 function now() {
   return Date.now();
@@ -82,11 +88,21 @@ function createOpaqueToken() {
   return crypto.randomBytes(32).toString("hex");
 }
 
+function isAdminEmail(email) {
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) {
+    return false;
+  }
+
+  return ADMIN_EMAILS.has(normalizedEmail);
+}
+
 function sanitizeUser(user) {
   return {
     id: user.id,
     name: user.name,
     email: user.email,
+    isAdmin: isAdminEmail(user.email),
     emailVerified: Boolean(user.emailVerified),
     createdAt: user.createdAt,
     updatedAt: user.updatedAt
@@ -285,8 +301,9 @@ export async function getAccountStatus(email) {
   };
 }
 
-export async function verifyEmailToken(token) {
+export async function verifyEmailToken(token, email = "") {
   const tokenHash = hashToken(token);
+  const normalizedEmail = normalizeEmail(email);
 
   return updateDb((db) => {
     const user = db.users.find(
@@ -294,18 +311,31 @@ export async function verifyEmailToken(token) {
         candidate.verificationTokenHash === tokenHash && Number(candidate.verificationExpiresAt || 0) > now()
     );
 
-    if (!user) {
-      const error = new Error("That verification link is invalid or has expired.");
-      error.statusCode = 400;
-      throw error;
+    if (user) {
+      user.emailVerified = true;
+      user.verificationTokenHash = null;
+      user.verificationExpiresAt = null;
+      user.updatedAt = new Date().toISOString();
+
+      return {
+        ...sanitizeUser(user),
+        alreadyVerified: false
+      };
     }
 
-    user.emailVerified = true;
-    user.verificationTokenHash = null;
-    user.verificationExpiresAt = null;
-    user.updatedAt = new Date().toISOString();
+    if (normalizedEmail) {
+      const existingUser = findUserByEmail(db, normalizedEmail);
+      if (existingUser?.emailVerified) {
+        return {
+          ...sanitizeUser(existingUser),
+          alreadyVerified: true
+        };
+      }
+    }
 
-    return sanitizeUser(user);
+    const error = new Error("That verification link is invalid or has expired.");
+    error.statusCode = 400;
+    throw error;
   });
 }
 

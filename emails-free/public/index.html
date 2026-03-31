@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>emails free</title>
+    <meta
+      name="description"
+      content="emails free is a Brevo-style email operations console with campaigns, automations, transactional rails, forms, domains, and analytics."
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="background-orb orb-one"></div>
+      <div class="background-orb orb-two"></div>
+      <div class="background-orb orb-three"></div>
+      <div class="background-grid"></div>
+
+      <header class="site-header reveal">
+        <a class="brand" href="#top" aria-label="emails free home">
+          <span class="brand-mark">ef</span>
+          <span class="brand-copy">
+            <strong>emails free</strong>
+            <small>email operating system</small>
+          </span>
+        </a>
+
+        <nav class="site-nav">
+          <a href="#studio">Studio</a>
+          <a href="#audience">Audience</a>
+          <a href="#automations">Automations</a>
+          <a href="#infrastructure">Infrastructure</a>
+          <a href="#analytics">Analytics</a>
+        </nav>
+
+        <a class="ghost-button" href="#studio">Open control room</a>
+      </header>
+
+      <main id="top">
+        <section class="hero">
+          <div class="hero-copy reveal">
+            <p class="eyebrow">Campaigns, journeys, rails, and deliverability control in one place</p>
+            <h1>emails free</h1>
+            <p class="lede">
+              This is the bigger product surface: broadcast campaigns, lifecycle automations, transactional sending,
+              forms, webhooks, sender domains, and a free runway of <strong>500 emails per day</strong>.
+            </p>
+
+            <div class="hero-actions">
+              <a class="primary-button" href="#studio">Launch a campaign</a>
+              <a class="secondary-button" href="#automations">Run an automation</a>
+            </div>
+
+            <div class="hero-ticker">
+              <article>
+                <span>Free runway</span>
+                <strong>500 per day</strong>
+              </article>
+              <article>
+                <span>Delivery lane</span>
+                <strong id="delivery-mode-label">Mock mode</strong>
+              </article>
+              <article>
+                <span>Premium</span>
+                <strong>Coming soon</strong>
+              </article>
+            </div>
+          </div>
+
+          <aside class="hero-panel reveal">
+            <div class="panel-glow"></div>
+            <p class="panel-kicker">Daily command</p>
+            <div class="quota-header">
+              <h2 id="sent-today">0</h2>
+              <span>sent today</span>
+            </div>
+
+            <div class="meter">
+              <div class="meter-fill" id="quota-fill"></div>
+            </div>
+
+            <div class="quota-meta">
+              <div>
+                <span>Remaining</span>
+                <strong id="remaining-count">500</strong>
+              </div>
+              <div>
+                <span>Avg score</span>
+                <strong id="avg-score">0</strong>
+              </div>
+              <div>
+                <span>Active contacts</span>
+                <strong id="active-contacts-count">0</strong>
+              </div>
+              <div>
+                <span>Auto runs</span>
+                <strong id="automation-run-count">0</strong>
+              </div>
+            </div>
+
+            <div class="hero-card-stack">
+              <article class="mini-card">
+                <span>Best segment</span>
+                <strong id="best-segment">High intent</strong>
+              </article>
+              <article class="mini-card premium-card">
+                <span>Best campaign</span>
+                <strong id="best-campaign">No data</strong>
+              </article>
+            </div>
+          </aside>
+        </section>
+
+        <section class="signal-strip reveal">
+          <article class="signal-card">
+            <p>Open rate</p>
+            <strong id="open-rate-metric">0%</strong>
+          </article>
+          <article class="signal-card">
+            <p>Click rate</p>
+            <strong id="click-rate-metric">0%</strong>
+          </article>
+          <article class="signal-card">
+            <p>Bounce rate</p>
+            <strong id="bounce-rate-metric">0%</strong>
+          </article>
+          <article class="signal-card">
+            <p>Templates</p>
+            <strong id="template-count">0 ready</strong>
+          </article>
+        </section>
+
+        <section class="studio-section" id="studio">
+          <div class="section-heading reveal">
+            <p class="eyebrow">Broadcast studio</p>
+            <h2>Build campaigns with scoring before you send</h2>
+            <p>
+              Compose like a broadcast tool, but with a send copilot that reads audience health, subject quality,
+              pacing, and risk before the send goes out.
+            </p>
+          </div>
+
+          <div class="studio-grid">
+            <form class="composer reveal" id="campaign-form">
+              <div class="composer-grid">
+                <label>
+                  <span>Campaign name</span>
+                  <input id="campaign-name" name="name" type="text" placeholder="Founder roadmap drop" maxlength="80" required />
+                </label>
+
+                <label>
+                  <span>Audience segment</span>
+                  <select id="campaign-segment" name="segmentId"></select>
+                </label>
+
+                <label>
+                  <span>Template</span>
+                  <select id="campaign-template" name="templateId"></select>
+                </label>
+
+                <label>
+                  <span>Projected recipients</span>
+                  <input id="campaign-recipients" name="recipients" type="number" min="1" max="500" required />
+                </label>
+
+                <label>
+                  <span>Send window</span>
+                  <select id="campaign-send-window" name="sendWindow">
+                    <option value="morning">Morning focus</option>
+                    <option value="afternoon">Afternoon ship</option>
+                    <option value="evening">Evening catch-up</option>
+                    <option value="late-night">Late night</option>
+                  </select>
+                </label>
+
+                <label>
+                  <span>Smart warmup</span>
+                  <div class="toggle-box">
+                    <input id="campaign-warmup" name="smartWarmup" type="checkbox" checked />
+                    <p>Split bigger sends into safer waves.</p>
+                  </div>
+                </label>
+              </div>
+
+              <label>
+                <span>Subject line</span>
+                <input id="campaign-subject" name="subject" type="text" maxlength="120" required />
+              </label>
+
+              <label>
+                <span>A/B subject variant</span>
+                <input id="campaign-ab-subject" name="abVariantSubject" type="text" maxlength="120" />
+              </label>
+
+              <label>
+                <span>Email copy</span>
+                <textarea id="campaign-content" name="content" rows="10" required></textarea>
+              </label>
+
+              <div class="form-footer">
+                <button class="primary-button" type="submit" id="send-button">Launch campaign</button>
+                <p id="form-message" class="form-message" aria-live="polite"></p>
+              </div>
+            </form>
+
+            <aside class="control-rail reveal">
+              <article class="status-card score-card">
+                <div class="score-header">
+                  <div>
+                    <p class="card-kicker">Send copilot</p>
+                    <h3 id="intelligence-score">0</h3>
+                  </div>
+                  <span class="score-band" id="intelligence-band">Needs work</span>
+                </div>
+
+                <p class="score-summary" id="intelligence-summary">
+                  Campaign intelligence will appear here once the composer is ready.
+                </p>
+
+                <div class="score-metrics">
+                  <div>
+                    <span>Projected opens</span>
+                    <strong id="projected-open-rate">0%</strong>
+                  </div>
+                  <div>
+                    <span>Projected clicks</span>
+                    <strong id="projected-click-rate">0%</strong>
+                  </div>
+                  <div>
+                    <span>Projected bounce</span>
+                    <strong id="projected-bounce-rate">0%</strong>
+                  </div>
+                  <div>
+                    <span>Hourly pacing</span>
+                    <strong id="recommended-batch">0</strong>
+                  </div>
+                </div>
+
+                <div class="insight-columns">
+                  <div>
+                    <p class="list-label">Boosts</p>
+                    <div class="chip-list" id="intelligence-boosts"></div>
+                  </div>
+                  <div>
+                    <p class="list-label">Warnings</p>
+                    <div class="chip-list" id="intelligence-warnings"></div>
+                  </div>
+                </div>
+              </article>
+
+              <article class="status-card">
+                <div class="panel-heading">
+                  <div>
+                    <p class="card-kicker">Platform modules</p>
+                    <h3>What this console includes</h3>
+                  </div>
+                  <span class="muted-badge" id="capability-count">0 modules</span>
+                </div>
+                <div class="feature-list" id="capabilities-list"></div>
+              </article>
+            </aside>
+          </div>
+        </section>
+
+        <section class="audience-section" id="audience">
+          <div class="section-heading reveal">
+            <p class="eyebrow">Audience</p>
+            <h2>Segments, forms, and contact heat in one view</h2>
+            <p>
+              Better email systems are driven by cleaner segmentation and stronger capture loops. This area maps
+              readers, signup forms, and template inventory together.
+            </p>
+          </div>
+
+          <div class="audience-grid">
+            <article class="status-card reveal">
+              <div class="panel-heading">
+                <div>
+                  <p class="card-kicker">Segments</p>
+                  <h3>Audience heat map</h3>
+                </div>
+                <span class="muted-badge" id="segment-count">0 segments</span>
+              </div>
+              <div class="segment-list" id="segment-list"></div>
+            </article>
+
+            <article class="status-card reveal">
+              <div class="panel-heading">
+                <div>
+                  <p class="card-kicker">Contacts</p>
+                  <h3>Contact health</h3>
+                </div>
+                <span class="muted-badge" id="contacts-summary">0 contacts</span>
+              </div>
+              <div class="contact-list" id="contact-list"></div>
+            </article>
+
+            <article class="status-card reveal">
+              <div class="panel-heading">
+                <div>
+                  <p class="card-kicker">Templates</p>
+                  <h3>Ready to adapt</h3>
+                </div>
+                <span class="muted-badge" id="template-summary">0 templates</span>
+              </div>
+              <div class="template-list" id="template-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="automation-section" id="automations">
+          <div class="section-heading reveal">
+            <p class="eyebrow">Automations</p>
+            <h2>Run lifecycle journeys instead of sending everything by hand</h2>
+            <p>
+              The automation studio gives you triggers, sequence steps, success goals, and manual run buttons so the
+              product feels closer to a lifecycle platform than a simple sender.
+            </p>
+          </div>
+
+          <div class="automation-grid">
+            <article class="status-card reveal">
+              <div class="panel-heading">
+                <div>
+                  <p class="card-kicker">Journeys</p>
+                  <h3>Automation center</h3>
+                </div>
+                <span class="muted-badge" id="automation-summary">0 active</span>
+              </div>
+              <div class="automation-list" id="automation-list"></div>
+              <p id="automation-message" class="sub-message" aria-live="polite"></p>
+            </article>
+
+            <article class="status-card reveal">
+              <div class="panel-heading">
+                <div>
+                  <p class="card-kicker">Activity</p>
+                  <h3>Live operations feed</h3>
+                </div>
+                <span class="muted-badge" id="activity-summary">0 events</span>
+              </div>
+              <div class="activity-list" id="activity-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="infrastructure-section" id="infrastructure">
+          <div class="section-heading reveal">
+            <p class="eyebrow">Infrastructure</p>
+            <h2>Transactional rails, domains, webhooks, and capture loops</h2>
+            <p>
+              This layer mirrors the operational parts of a full email platform: sender domains, API keys, SMTP
+              details, webhooks, transactional tests, and form capture inputs.
+            </p>
+          </div>
+
+          <div class="infrastructure-grid">
+            <article class="status-card reveal">
+              <div class="panel-heading">
+                <div>
+                  <p class="card-kicker">Sender domains</p>
+                  <h3>Reputation and DNS</h3>
+                </div>
+                <span class="muted-badge" id="domain-summary">0 domains</span>
+              </div>
+              <div class="domain-list" id="domain-list"></div>
+            </article>
+
+            <article class="status-card reveal">
+              <div class="panel-heading">
+                <div>
+                  <p class="card-kicker">Transactional</p>
+                  <h3>API and SMTP test lane</h3>
+                </div>
+                <span class="muted-badge" id="smtp-status">Sandboxed</span>
+              </div>
+              <div class="smtp-card" id="smtp-card"></div>
+
+              <form class="inline-form" id="transactional-form">
+                <div class="inline-form-grid">
+                  <label>
+                    <span>Recipient email</span>
+                    <input id="transactional-recipient" name="recipientEmail" type="email" placeholder="founder@example.com" required />
+                  </label>
+
+                  <label>
+                    <span>Template</span>
+                    <select id="transactional-template" name="templateId"></select>
+                  </label>
+                </div>
+
+                <label>
+                  <span>Subject</span>
+                  <input id="transactional-subject" name="subject" type="text" maxlength="120" required />
+                </label>
+
+                <div class="form-footer">
+                  <button class="secondary-button inline-button" type="submit" id="transactional-send-button">
+                    Send transactional test
+                  </button>
+                  <p id="transactional-message" class="sub-message" aria-live="polite"></p>
+                </div>
+              </form>
+            </article>
+
+            <article class="status-card reveal">
+              <div class="panel-heading">
+                <div>
+                  <p class="card-kicker">Keys and hooks</p>
+                  <h3>Platform credentials</h3>
+                </div>
+                <span class="muted-badge" id="key-summary">0 keys</span>
+              </div>
+              <div class="key-list" id="key-list"></div>
+              <div class="webhook-list" id="webhook-list"></div>
+            </article>
+
+            <article class="status-card reveal">
+              <div class="panel-heading">
+                <div>
+                  <p class="card-kicker">Capture</p>
+                  <h3>Forms and transactional events</h3>
+                </div>
+                <span class="muted-badge" id="form-summary">0 forms</span>
+              </div>
+              <div class="form-list" id="form-list"></div>
+              <div class="transactional-list" id="transactional-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="analytics-section" id="analytics">
+          <div class="section-heading reveal">
+            <p class="eyebrow">Analytics</p>
+            <h2>Read the outcomes, then sharpen the next send</h2>
+            <p>
+              Campaign history, aggregated metrics, and recommendation cards stay in the same console so the next move
+              is always one click away.
+            </p>
+          </div>
+
+          <div class="analytics-grid">
+            <article class="status-card reveal">
+              <div class="metric-grid" id="analytics-metrics"></div>
+            </article>
+
+            <article class="status-card reveal">
+              <div class="panel-heading">
+                <div>
+                  <p class="card-kicker">Recommendations</p>
+                  <h3>What to do next</h3>
+                </div>
+                <span class="muted-badge">Copilot</span>
+              </div>
+              <div class="recommendation-list" id="recommendation-list"></div>
+            </article>
+          </div>
+
+          <article class="status-card campaign-history reveal">
+            <div class="panel-heading">
+              <div>
+                <p class="card-kicker">Campaign history</p>
+                <h3>Recent sends</h3>
+              </div>
+              <span class="muted-badge" id="recent-count">0 items</span>
+            </div>
+            <div class="recent-list" id="recent-campaigns"></div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

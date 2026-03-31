@@ -5,12 +5,12 @@ import AuthShell from "./AuthShell";
 function Notice({ tone = "neutral", children }) {
   const toneClass =
     tone === "error"
-      ? "border-[#f0c9c9] bg-[#fff4f4] text-[#8a2f2f]"
+      ? "border-[#7f1d1d]/40 bg-[#3f1014]/42 text-[#fecaca]"
       : tone === "success"
-        ? "border-[#cde7d8] bg-[#eff9f3] text-[#1d6d47]"
-        : "border-[#e2d6b7] bg-[#fff8ea] text-[#7b5b12]";
+        ? "border-[#14532d]/40 bg-[#0d2f1d]/42 text-[#bbf7d0]"
+        : "border-[#4c1d95]/40 bg-[#271040]/44 text-[#ddd6fe]";
 
-  return <div className={`rounded-2xl border px-4 py-3 text-sm ${toneClass}`}>{children}</div>;
+  return <div className={`rounded-[22px] border px-4 py-4 text-sm leading-7 ${toneClass}`}>{children}</div>;
 }
 
 function previewMessage(baseText, error) {
@@ -23,10 +23,7 @@ function PreviewLink({ href, label }) {
   }
 
   return (
-    <a
-      href={href}
-      className="mt-3 inline-flex items-center justify-center rounded-xl border border-[#b7d8c3] bg-white px-3 py-2 text-sm font-semibold text-[#0f2f20] transition hover:bg-[#f6fbf7]"
-    >
+    <a href={href} className="energy-space-secondary mt-3 inline-flex px-4 py-2.5 text-sm">
       {label}
     </a>
   );
@@ -35,14 +32,14 @@ function PreviewLink({ href, label }) {
 function Field({ label, type = "text", value, onChange, placeholder, autoComplete }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-semibold text-[#173127]">{label}</span>
+      <span className="mb-2 block text-sm font-semibold text-white/78">{label}</span>
       <input
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        className="w-full rounded-[20px] border border-[#d6ddd6] bg-[#fbfcfa] px-4 py-3 text-sm text-[#14261a] outline-none transition focus:border-[#1d6d47] focus:bg-white"
+        className="energy-auth-input"
       />
     </label>
   );
@@ -71,9 +68,9 @@ export default function AuthPage({
       return "Create account";
     }
     if (isForgot) {
-      return "Forgot password";
+      return "Recover access";
     }
-    return "Welcome back";
+    return "Sign in";
   }, [isForgot, isSignup]);
 
   async function handleSubmit(event) {
@@ -87,11 +84,8 @@ export default function AuthPage({
         setStatus({
           tone: result.emailDelivery?.previewOnly ? "neutral" : "success",
           text: result.emailDelivery?.previewOnly
-            ? previewMessage(
-                "Account created. Email delivery is not configured yet, so a preview verification link is shown below.",
-                result.emailDelivery?.error
-              )
-            : "Account created. Check your inbox to verify your email before signing in. If you do not see it soon, check spam or promotions for `Verify your Energy AI email`.",
+            ? previewMessage("Account created. Use the preview link below.", result.emailDelivery?.error)
+            : "Account created. Verify your email to continue.",
           previewUrl: result.emailDelivery?.previewOnly ? result.emailDelivery?.previewUrl : "",
           previewLabel: "Open verification preview"
         });
@@ -103,11 +97,8 @@ export default function AuthPage({
         setStatus({
           tone: result.emailDelivery?.previewOnly ? "neutral" : "success",
           text: result.emailDelivery?.previewOnly
-            ? previewMessage(
-                "Reset flow created. Email delivery is disabled, so a preview reset link is shown below.",
-                result.emailDelivery?.error
-              )
-            : `${result.message || "If that account exists, a reset email is on the way."} If you do not see it soon, check spam or promotions for \`Reset your Energy AI password\`.`,
+            ? previewMessage("Reset link ready. Use the preview below.", result.emailDelivery?.error)
+            : `${result.message || "If that account exists, a reset email is on the way."}`,
           previewUrl: result.emailDelivery?.previewOnly ? result.emailDelivery?.previewUrl : "",
           previewLabel: "Open reset preview"
         });
@@ -126,9 +117,9 @@ export default function AuthPage({
         tone: "error",
         text:
           (isLogin && error.status === 404
-            ? `${error.message || "No account found for that email."} Use Sign up to create it again.`
+            ? `${error.message || "No account found."} Create it again.`
             : isSignup && error.status === 409
-              ? `${error.message || "An account with that email already exists."} Try signing in or reset the password instead.`
+              ? `${error.message || "Account already exists."} Try login instead.`
               : error.message) || "Request failed."
       });
     } finally {
@@ -139,21 +130,21 @@ export default function AuthPage({
   const footer = isSignup ? (
     <p>
       Already have an account?{" "}
-      <button type="button" onClick={() => navigate("login")} className="font-semibold text-[#0f2f20]">
-        Sign in
+      <button type="button" onClick={() => navigate("login")} className="font-semibold text-white transition hover:text-cyan-300">
+        Login
       </button>
     </p>
   ) : isForgot ? (
     <p>
       Remembered it?{" "}
-      <button type="button" onClick={() => navigate("login")} className="font-semibold text-[#0f2f20]">
-        Back to sign in
+      <button type="button" onClick={() => navigate("login")} className="font-semibold text-white transition hover:text-cyan-300">
+        Back to login
       </button>
     </p>
   ) : (
     <p>
       Need an account?{" "}
-      <button type="button" onClick={() => navigate("signup")} className="font-semibold text-[#0f2f20]">
+      <button type="button" onClick={() => navigate("signup")} className="font-semibold text-white transition hover:text-cyan-300">
         Create one
       </button>
     </p>
@@ -161,35 +152,16 @@ export default function AuthPage({
 
   return (
     <AuthShell mode={mode} footer={footer}>
-      <p className="text-xs uppercase tracking-[0.24em] text-[#6a7e73]">{isSignup ? "New user" : isForgot ? "Recovery" : "Sign in"}</p>
-      <h2 className="mt-2 font-display text-3xl font-bold tracking-[-0.03em] text-[#10261b]">{title}</h2>
-      <p className="mt-2 text-sm text-[#4d6357]">
-        {isSignup
-          ? "Create a real account so chats stay separate for every user."
-          : isForgot
-            ? "Enter your account email and Energy AI will prepare a reset link."
-            : "Sign in to your account and continue with your own private history."}
+      <p className="text-xs uppercase tracking-[0.28em] text-white/42">{isSignup ? "Sign up" : isForgot ? "Recovery" : "Login"}</p>
+      <h2 className="mt-3 font-display text-4xl font-bold tracking-[-0.05em] text-white">{title}</h2>
+      <p className="mt-3 text-sm leading-7 text-white/56">
+        {isSignup ? "Create your private workspace." : isForgot ? "We will send a reset link." : "Continue to your dark workspace."}
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        {isSignup ? (
-          <Field
-            label="Full name"
-            value={name}
-            onChange={setName}
-            placeholder="Your name"
-            autoComplete="name"
-          />
-        ) : null}
+      <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+        {isSignup ? <Field label="Full name" value={name} onChange={setName} placeholder="Your name" autoComplete="name" /> : null}
 
-        <Field
-          label="Email"
-          type="email"
-          value={email}
-          onChange={setEmail}
-          placeholder="you@example.com"
-          autoComplete="email"
-        />
+        <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="you@example.com" autoComplete="email" />
 
         {!isForgot ? (
           <Field
@@ -209,21 +181,13 @@ export default function AuthPage({
           </Notice>
         ) : null}
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-[22px] bg-[#0f2f20] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#164a31] disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <button type="submit" disabled={isSubmitting} className="energy-space-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60">
           {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}
           {isSignup ? "Create account" : isForgot ? "Send reset link" : "Sign in"}
         </button>
 
         {!isForgot && !isSignup ? (
-          <button
-            type="button"
-            onClick={() => navigate("forgot-password")}
-            className="w-full text-sm font-semibold text-[#476154] transition hover:text-[#0f2f20]"
-          >
+          <button type="button" onClick={() => navigate("forgot-password")} className="w-full text-sm font-semibold text-white/54 transition hover:text-white">
             Forgot password?
           </button>
         ) : null}

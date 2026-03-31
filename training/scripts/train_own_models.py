@@ -90,6 +90,31 @@ def normalize(text: str) -> str:
   return re.sub(r"\s+", " ", text).strip()
 
 
+def quality_signal(row) -> str:
+  return normalize(str(row.get("quality_signal", row.get("quality", "")))).lower()
+
+
+def feedback_signal(row) -> str:
+  return normalize(str(row.get("feedback", ""))).lower()
+
+
+def should_skip_feedback_row(row) -> bool:
+  quality = quality_signal(row)
+  feedback = feedback_signal(row)
+  return quality in {"rejected", "reject", "downvote", "negative"} or feedback in {"down", "downvote", "negative"}
+
+
+def repeat_count_for_row(row) -> int:
+  quality = quality_signal(row)
+  feedback = feedback_signal(row)
+
+  if quality in {"corrected", "correction"} or feedback == "correction":
+    return 3
+  if quality in {"approved", "positive"} or feedback in {"up", "upvote", "positive"}:
+    return 2
+  return 1
+
+
 def tokenize_words(text: str):
   return WORD_RE.findall(text.lower())
 
@@ -276,8 +301,12 @@ def collect_examples(input_paths, deep_threshold, max_duplicate_prompts, max_fas
     for row in read_jsonl(input_path):
       if "messages" in row and isinstance(row["messages"], list):
         pairs = extract_pairs_from_messages(row["messages"])
+        repeats = 1
       elif "prompt" in row and "completion" in row:
+        if should_skip_feedback_row(row):
+          continue
         pairs = [(normalize(str(row["prompt"])), normalize(str(row["completion"])))]
+        repeats = repeat_count_for_row(row)
       else:
         continue
 
@@ -290,17 +319,19 @@ def collect_examples(input_paths, deep_threshold, max_duplicate_prompts, max_fas
           continue
 
         prompt_key = normalize(prompt).lower()
-        if prompt_seen[prompt_key] >= max_duplicate_prompts:
-          continue
-        prompt_seen[prompt_key] += 1
 
-        score = complexity_score(prompt)
-        if score >= deep_threshold:
-          deep_examples.append((prompt, completion))
-          router_examples.append((prompt, "deep"))
-        else:
-          fast_examples.append((prompt, completion))
-          router_examples.append((prompt, "fast"))
+        for _ in range(max(repeats, 1)):
+          if prompt_seen[prompt_key] >= max_duplicate_prompts:
+            break
+          prompt_seen[prompt_key] += 1
+
+          score = complexity_score(prompt)
+          if score >= deep_threshold:
+            deep_examples.append((prompt, completion))
+            router_examples.append((prompt, "deep"))
+          else:
+            fast_examples.append((prompt, completion))
+            router_examples.append((prompt, "fast"))
 
   rng = random.Random(seed)
   rng.shuffle(fast_examples)

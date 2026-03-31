@@ -3,25 +3,25 @@ export const ENERGY_MODE_OPTIONS = [
     id: "auto",
     label: "Auto Balance",
     hint: "Route by difficulty",
-    activeClass: "border-[#1d6d47] bg-[#0f2f20] text-white shadow-[0_14px_30px_-18px_rgba(15,47,32,0.75)]",
-    idleClass: "border-[#cad8cf] bg-white text-[#3d5f4b] hover:bg-[#eef6f0]",
-    chipClass: "border-[#cad8cf] bg-white text-[#3d5f4b]"
+    activeClass: "border-[#f0deb0] bg-[linear-gradient(135deg,#403116_0%,#6c5320_100%)] text-white shadow-[0_24px_54px_-30px_rgba(108,83,32,0.8)]",
+    idleClass: "border-white/10 bg-white/[0.05] text-[#f3dc9a] hover:bg-white/[0.08]",
+    chipClass: "border-[#e8d299]/18 bg-[#2a2112]/84 text-[#f4dda1]"
   },
   {
     id: "fast",
     label: "Low Energy",
     hint: "Fast and efficient",
-    activeClass: "border-[#2a9d62] bg-[#2a9d62] text-white shadow-[0_14px_30px_-18px_rgba(42,157,98,0.75)]",
-    idleClass: "border-[#bfe1cc] bg-white text-[#1d6d47] hover:bg-[#eaf7ef]",
-    chipClass: "border-[#bfe1cc] bg-[#edf9f1] text-[#1d6d47]"
+    activeClass: "border-[#95e0bb] bg-[linear-gradient(135deg,#163825_0%,#1f6f48_58%,#2daa72_100%)] text-white shadow-[0_24px_54px_-30px_rgba(29,109,71,0.86)]",
+    idleClass: "border-white/10 bg-white/[0.05] text-[#9be7c0] hover:bg-[#113022]/72",
+    chipClass: "border-[#74d4a3]/18 bg-[#10251a]/84 text-[#a6f0ca]"
   },
   {
     id: "deep",
     label: "High Energy",
     hint: "Deep reasoning",
-    activeClass: "border-[#c44949] bg-[#c44949] text-white shadow-[0_14px_30px_-18px_rgba(196,73,73,0.75)]",
-    idleClass: "border-[#ebc2c2] bg-white text-[#8d2f2f] hover:bg-[#fff1f1]",
-    chipClass: "border-[#ebc2c2] bg-[#fff3f3] text-[#9d3030]"
+    activeClass: "border-[#f1c3b7] bg-[linear-gradient(135deg,#51291f_0%,#944431_100%)] text-white shadow-[0_24px_54px_-30px_rgba(148,68,49,0.82)]",
+    idleClass: "border-white/10 bg-white/[0.05] text-[#f3bbcd] hover:bg-[#311620]/72",
+    chipClass: "border-[#d68ea8]/18 bg-[#26111a]/84 text-[#f8c7d5]"
   }
 ];
 
@@ -36,6 +36,9 @@ function titleCase(value) {
 }
 
 export function energyKeyFromMeta(meta = {}) {
+  if (meta.energyMode === "auto" || meta.role === "router") {
+    return "auto";
+  }
   if (meta.energyMode === "high" || meta.role === "deep") {
     return "deep";
   }

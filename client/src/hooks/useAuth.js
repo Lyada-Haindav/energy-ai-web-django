@@ -7,6 +7,7 @@ import {
   resendVerification as resendVerificationRequest,
   resetPassword as resetPasswordRequest,
   setAuthToken,
+  setUnauthorizedHandler,
   verifyEmail as verifyEmailRequest,
   whoAmI
 } from "../lib/api";
@@ -30,6 +31,18 @@ function readStoredPendingToken() {
   }
 }
 
+function writeStoredToken(key, value) {
+  try {
+    if (value) {
+      localStorage.setItem(key, value);
+    } else {
+      localStorage.removeItem(key);
+    }
+  } catch {
+    // Ignore browsers that block storage access and keep auth in memory.
+  }
+}
+
 export function useAuth() {
   const [token, setToken] = useState(readStoredToken);
   const [user, setUser] = useState(null);
@@ -38,6 +51,17 @@ export function useAuth() {
   useEffect(() => {
     setAuthToken(token);
   }, [token]);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      persistPendingToken("");
+      persistSession("", null);
+    });
+
+    return () => {
+      setUnauthorizedHandler(null);
+    };
+  }, []);
 
   useEffect(() => {
     let ignore = false;
@@ -58,7 +82,7 @@ export function useAuth() {
         }
       } catch {
         if (!ignore) {
-          localStorage.removeItem(TOKEN_STORAGE_KEY);
+          writeStoredToken(TOKEN_STORAGE_KEY, "");
           setAuthToken("");
           setToken("");
           setUser(null);
@@ -78,11 +102,7 @@ export function useAuth() {
   }, [token]);
 
   function persistSession(nextToken, nextUser) {
-    if (nextToken) {
-      localStorage.setItem(TOKEN_STORAGE_KEY, nextToken);
-    } else {
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
-    }
+    writeStoredToken(TOKEN_STORAGE_KEY, nextToken);
 
     setAuthToken(nextToken);
     setToken(nextToken);
@@ -90,11 +110,7 @@ export function useAuth() {
   }
 
   function persistPendingToken(nextToken) {
-    if (nextToken) {
-      localStorage.setItem(PENDING_TOKEN_STORAGE_KEY, nextToken);
-    } else {
-      localStorage.removeItem(PENDING_TOKEN_STORAGE_KEY);
-    }
+    writeStoredToken(PENDING_TOKEN_STORAGE_KEY, nextToken);
   }
 
   async function register(payload) {
@@ -138,8 +154,11 @@ export function useAuth() {
     return result.user;
   }
 
-  async function verifyEmail(tokenValue) {
-    const result = await verifyEmailRequest({ token: tokenValue });
+  async function verifyEmail(tokenValue, emailValue = "") {
+    const result = await verifyEmailRequest({
+      token: tokenValue,
+      email: emailValue
+    });
     const pendingToken = readStoredPendingToken();
 
     if (pendingToken) {
@@ -166,6 +185,13 @@ export function useAuth() {
     return result;
   }
 
+  async function resetPassword(payload) {
+    const result = await resetPasswordRequest(payload);
+    persistPendingToken("");
+    persistSession("", null);
+    return result;
+  }
+
   return {
     token,
     user,
@@ -178,6 +204,6 @@ export function useAuth() {
     verifyEmail,
     resendVerification: resendVerificationRequest,
     forgotPassword: forgotPasswordRequest,
-    resetPassword: resetPasswordRequest
+    resetPassword
   };
 }

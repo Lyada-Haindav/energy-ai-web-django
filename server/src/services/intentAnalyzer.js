@@ -30,7 +30,7 @@ const DEPTH_PATTERN =
   /\b(in depth|deeply|detailed|step by step|advanced|trade-?offs?|architecture|production|scalable|research)\b/i;
 
 export function normalizeUserText(text) {
-  return String(text || "")
+  return normalizeNaturalLanguageText(text)
     .trim()
     .replace(/^[^A-Za-z0-9]+/, "")
     .replace(/[^A-Za-z0-9]+$/, "")
@@ -154,7 +154,7 @@ function routeHintFor(type, needsDepth, words) {
     return "deep";
   }
   if (type === "coding") {
-    return needsDepth || words > 14 ? "deep" : "fast";
+    return needsDepth || words > 6 ? "deep" : "fast";
   }
   if (type === "definition") {
     return needsDepth ? "deep" : "fast";
@@ -181,18 +181,24 @@ function searchProfileFor(type) {
   return "reference";
 }
 
-export function analyzeUserIntent({ messages = [], mode = "auto" } = {}) {
+export function analyzeUserIntent({ messages = [], mode = "auto", workspaceMode = "general" } = {}) {
   const userMessages = messages.filter((message) => message.role === "user");
   const latestRawText = userMessages[userMessages.length - 1]?.content || "";
   const previousRawText = userMessages[userMessages.length - 2]?.content || "";
   const normalizedText = normalizeUserText(latestRawText);
   const normalizedPreviousText = normalizeUserText(previousRawText);
+  const normalizedWorkspaceMode = normalizeWorkspaceMode(workspaceMode);
   const words = wordCount(normalizedText);
   const type = detectIntentType(normalizedText);
-  const needsDepth = DEPTH_PATTERN.test(normalizedText) || normalizedText.includes("\n") || words > 50;
+  const needsDepth =
+    workspaceModeRequiresDeep(normalizedWorkspaceMode) ||
+    DEPTH_PATTERN.test(normalizedText) ||
+    normalizedText.includes("\n") ||
+    words > 50;
 
   return {
     mode,
+    workspaceMode: normalizedWorkspaceMode,
     rawText: latestRawText,
     normalizedText,
     previousRawText,
@@ -208,3 +214,5 @@ export function analyzeUserIntent({ messages = [], mode = "auto" } = {}) {
     ignoreConversationContext: ["casual", "identity", "datetime", "empty"].includes(type)
   };
 }
+import { normalizeNaturalLanguageText } from "./textNormalization.js";
+import { normalizeWorkspaceMode, workspaceModeRequiresDeep } from "./workspaceMode.js";

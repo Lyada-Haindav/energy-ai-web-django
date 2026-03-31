@@ -5,15 +5,21 @@ import {
   Loader2,
   LogOut,
   MailCheck,
+  Menu,
   MessageCircle,
+  MessageCirclePlus,
+  Search,
   UserCircle2,
-  Zap
+  X
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import AdminPage from "./components/AdminPage";
 import AnalyticsPage from "./components/AnalyticsPage";
 import AuthPage from "./components/AuthPage";
 import ChatWindow from "./components/ChatWindow";
+import CommandPalette from "./components/CommandPalette";
 import Composer from "./components/Composer";
+import EnergyBrand from "./components/EnergyBrand";
 import HomePage from "./components/HomePage";
 import Sidebar from "./components/Sidebar";
 import TokenActionPage from "./components/TokenActionPage";
@@ -22,8 +28,14 @@ import { useChat } from "./hooks/useChat";
 
 const PUBLIC_ROUTES = new Set(["home", "login", "signup", "forgot-password", "reset-password", "verify-email"]);
 const APP_ROUTES = new Set(["chat", "analytics"]);
+const ADMIN_ROUTES = new Set(["admin"]);
 
 function parseRoute() {
+  const pathname = String(window.location.pathname || "/").replace(/\/+$/, "") || "/";
+  if (pathname === "/admin") {
+    return { page: "admin", token: "", email: "" };
+  }
+
   const raw = window.location.hash || "#/home";
   const normalized = raw.startsWith("#") ? raw.slice(1) : raw;
   const [pathPart, queryString = ""] = normalized.split("?");
@@ -60,6 +72,7 @@ function hashForPage(page, params = {}) {
     home: "/home",
     chat: "/chat",
     analytics: "/analytics",
+    admin: "/admin",
     login: "/login",
     signup: "/signup",
     "forgot-password": "/forgot-password",
@@ -81,14 +94,14 @@ function hashForPage(page, params = {}) {
 function StatusBanner({ tone = "neutral", children, action }) {
   const toneClass =
     tone === "error"
-      ? "border-[#f0c9c9] bg-[#fff4f4] text-[#8a2f2f]"
+      ? "border-[#7f1d1d]/40 bg-[#3f1014]/42 text-[#fecaca]"
       : tone === "success"
-        ? "border-[#cde7d8] bg-[#eff9f3] text-[#1d6d47]"
-        : "border-[#e2d6b7] bg-[#fff8ea] text-[#7b5b12]";
+        ? "border-[#14532d]/40 bg-[#0d2f1d]/42 text-[#bbf7d0]"
+        : "border-[#4c1d95]/40 bg-[#271040]/44 text-[#ddd6fe]";
 
   return (
     <div
-      className={`mb-4 flex flex-col gap-3 rounded-[24px] border px-4 py-4 text-sm sm:flex-row sm:items-center sm:justify-between ${toneClass}`}
+      className={`energy-panel energy-sheen animate-page-in mb-4 flex flex-col gap-3 rounded-[28px] border px-4 py-4 text-sm sm:flex-row sm:items-center sm:justify-between ${toneClass}`}
     >
       <div>{children}</div>
       {action}
@@ -108,7 +121,7 @@ function PreviewLink({ href, label }) {
   return (
     <a
       href={href}
-      className="mt-2 inline-flex items-center justify-center rounded-xl border border-[#b7d8c3] bg-white px-3 py-2 font-semibold text-[#0f2f20] transition hover:bg-[#f6fbf7]"
+      className="energy-space-secondary mt-3 inline-flex px-4 py-2 text-sm"
     >
       {label}
     </a>
@@ -125,17 +138,64 @@ function AppShell({
   createChat,
   removeChat,
   sendMessage,
+  stopGeneration,
+  regenerateLastReply,
+  feedbackMessage,
   isLoading,
   isHydrating,
   syncError,
   activeMode,
   setActiveMode,
+  workspaceMode,
+  setWorkspaceMode,
   onNavigate,
   onLogout,
   onResendVerification
 }) {
   const [banner, setBanner] = useState(null);
   const [isResendingVerification, setIsResendingVerification] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [composerSeed, setComposerSeed] = useState({ value: "", attachments: [], nonce: 0 });
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [page, activeSessionId]);
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const target = event.target;
+      const tagName = target?.tagName?.toLowerCase?.() || "";
+      const isTypingTarget = tagName === "input" || tagName === "textarea" || target?.isContentEditable;
+
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setIsCommandPaletteOpen((current) => !current);
+        return;
+      }
+
+      if (!isTypingTarget && event.key.toLowerCase() === "n" && page === "chat") {
+        event.preventDefault();
+        createChat();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [createChat, page]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const syncMenuState = (event) => {
+      if (event.matches) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    syncMenuState(media);
+    media.addEventListener?.("change", syncMenuState);
+    return () => media.removeEventListener?.("change", syncMenuState);
+  }, []);
 
   async function resendVerification() {
     setIsResendingVerification(true);
@@ -164,43 +224,67 @@ function AppShell({
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#edf3ee]">
+    <main className="relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[-10rem] top-[-8rem] h-72 w-72 rounded-full bg-[#bde3c9]/60 blur-3xl" />
-        <div className="absolute bottom-[-8rem] right-[-6rem] h-80 w-80 rounded-full bg-[#f1c5c5]/55 blur-3xl" />
-        <div className="absolute inset-x-0 top-0 h-80 bg-[radial-gradient(circle_at_top,rgba(15,47,32,0.14),transparent_58%)]" />
+        <div className="absolute left-[-10rem] top-[-6rem] h-72 w-72 rounded-full bg-[#6d28d9]/20 blur-3xl animate-drift" />
+        <div className="absolute right-[-6rem] top-[2rem] h-80 w-80 rounded-full bg-[#06b6d4]/18 blur-3xl animate-float" />
+        <div className="absolute bottom-[-8rem] right-[6%] h-80 w-80 rounded-full bg-[#4f46e5]/18 blur-3xl animate-drift" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(79,70,229,0.16),transparent_52%)]" />
       </div>
 
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[linear-gradient(135deg,#07130f_0%,#10261b_52%,#351616_100%)]">
-        <div className="mx-auto flex min-h-16 w-full max-w-[1440px] flex-col gap-3 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between lg:px-6">
-          <div className="flex w-full items-center gap-3 text-white sm:w-auto">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-[#bfe1cc]">
-              <Zap size={16} />
-            </span>
-            <div>
-              <p className="text-xl font-semibold tracking-[-0.02em]">Energy AI</p>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-white/60">Low-energy speed. High-energy depth.</p>
-            </div>
+      <header className="fixed inset-x-0 top-0 z-40 px-0 pt-0 sm:sticky sm:px-4 sm:pt-3 lg:px-6">
+        <div className="energy-app-topbar energy-panel-dark energy-page-enter mx-auto flex min-h-[4rem] w-full max-w-[1440px] flex-col gap-2 rounded-none border-x-0 border-t-0 px-3 py-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:rounded-[22px] sm:border sm:px-4 sm:py-2 lg:px-5">
+          <div className="flex w-full items-center justify-between gap-3 text-white sm:hidden">
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/12 bg-white/8 text-white transition hover:bg-white/14"
+              aria-label="Open menu"
+            >
+              <Menu size={18} />
+            </button>
+
+            <EnergyBrand size={38} className="min-w-0 flex-1 justify-center" titleClassName="text-base" showSubtitle={false} />
+
+            <button
+              type="button"
+              onClick={() => {
+                if (page === "chat") {
+                  createChat();
+                  return;
+                }
+
+                onNavigate("chat");
+              }}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/12 bg-white/8 text-white transition hover:bg-white/14"
+              aria-label={page === "chat" ? "Start new chat" : "Open chat"}
+            >
+              {page === "chat" ? <MessageCirclePlus size={18} /> : <MessageCircle size={18} />}
+            </button>
           </div>
 
-          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+          <EnergyBrand size={40} className="hidden sm:flex sm:w-auto" titleClassName="text-lg sm:text-[1.08rem]" subtitleClassName="text-[10px]" />
+
+          <div className="hidden w-full flex-wrap items-center gap-2 sm:flex sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
             <div className="hidden items-center gap-2 md:flex">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#3f7d5d] bg-[#163726] px-2.5 py-1 text-[11px] font-semibold text-[#bfe1cc]">
+              <span className="energy-chip border-white/12 bg-white/8 text-white/86">
                 <Leaf size={12} />
                 Low Energy
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#7f3a3a] bg-[#361818] px-2.5 py-1 text-[11px] font-semibold text-[#f2c3c3]">
+              <span className="energy-chip border-white/12 bg-white/8 text-white/86">
                 <Flame size={12} />
                 High Energy
               </span>
             </div>
 
-            <div className="flex gap-2">
+            <div className="w-full rounded-full border border-white/10 bg-white/8 p-1 sm:w-auto">
               <button
                 type="button"
                 onClick={() => onNavigate("chat")}
-                className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-1.5 text-sm font-semibold transition sm:flex-none ${
-                  page === "chat" ? "bg-white text-[#10261b]" : "bg-white/10 text-white hover:bg-white/20"
+                className={`inline-flex min-w-[98px] flex-1 items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition sm:flex-none ${
+                  page === "chat"
+                    ? "bg-[linear-gradient(135deg,#6d28d9_0%,#4f46e5_52%,#06b6d4_100%)] text-white shadow-soft"
+                    : "text-white hover:bg-white/12"
                 }`}
               >
                 <MessageCircle size={14} />
@@ -209,8 +293,10 @@ function AppShell({
               <button
                 type="button"
                 onClick={() => onNavigate("analytics")}
-                className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-1.5 text-sm font-semibold transition sm:flex-none ${
-                  page === "analytics" ? "bg-white text-[#10261b]" : "bg-white/10 text-white hover:bg-white/20"
+                className={`inline-flex min-w-[98px] flex-1 items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition sm:flex-none ${
+                  page === "analytics"
+                    ? "bg-[linear-gradient(135deg,#6d28d9_0%,#4f46e5_52%,#06b6d4_100%)] text-white shadow-soft"
+                    : "text-white hover:bg-white/12"
                 }`}
               >
                 <BarChart3 size={14} />
@@ -218,18 +304,28 @@ function AppShell({
               </button>
             </div>
 
-            <div className="flex items-center gap-2 rounded-2xl border border-white/12 bg-white/8 px-3 py-2 text-white/85">
+            <button
+              type="button"
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="hidden items-center gap-2 rounded-[16px] border border-white/12 bg-white/8 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/16 lg:inline-flex"
+            >
+              <Search size={14} />
+              Command
+              <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-white/48">Ctrl K</span>
+            </button>
+
+            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[16px] border border-white/12 bg-white/8 px-3 py-2 text-white/85 backdrop-blur sm:max-w-[220px] sm:flex-none">
               <UserCircle2 size={18} />
-              <div className="text-left">
-                <p className="text-sm font-semibold leading-none">{user.name}</p>
-                <p className="mt-1 text-xs text-white/60">{user.email}</p>
+              <div className="min-w-0 text-left">
+                <p className="truncate text-sm font-semibold leading-none">{user.name}</p>
+                <p className="mt-1 hidden text-xs text-white/60 xl:block">{user.email}</p>
               </div>
             </div>
 
             <button
               type="button"
               onClick={onLogout}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/14 bg-white/8 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/16"
+              className="inline-flex items-center justify-center gap-2 rounded-[16px] border border-white/14 bg-white/8 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/16"
             >
               <LogOut size={14} />
               Logout
@@ -238,11 +334,103 @@ function AppShell({
         </div>
       </header>
 
+      <div className={`fixed inset-0 z-50 lg:hidden ${isMobileMenuOpen ? "" : "pointer-events-none"}`}>
+        <button
+          type="button"
+          aria-label="Close menu overlay"
+          onClick={() => setIsMobileMenuOpen(false)}
+          className={`absolute inset-0 bg-black/72 transition duration-300 ${isMobileMenuOpen ? "opacity-100" : "opacity-0"}`}
+        />
+        <aside
+        className={`absolute inset-y-0 left-0 flex w-[84vw] max-w-[340px] flex-col border-r border-white/10 bg-[linear-gradient(180deg,rgba(6,10,18,0.98)_0%,rgba(8,14,22,0.98)_48%,rgba(12,18,28,0.98)_100%)] px-3 py-3 shadow-[0_40px_120px_-40px_rgba(0,0,0,1)] transition duration-300 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+        >
+          <div className="flex items-center justify-between gap-3 rounded-[24px] border border-white/10 bg-white/[0.04] px-3 py-3 text-white">
+            <EnergyBrand size={40} className="min-w-0 flex-1" titleClassName="text-lg" subtitleClassName="text-[10px]" />
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/12 bg-white/8 text-white transition hover:bg-white/14"
+              aria-label="Close menu"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                onNavigate("chat");
+                setIsMobileMenuOpen(false);
+              }}
+              className={`inline-flex items-center justify-center gap-2 rounded-[20px] px-3 py-3 text-sm font-semibold transition ${
+                page === "chat"
+                  ? "bg-[linear-gradient(135deg,#6d28d9_0%,#4f46e5_52%,#06b6d4_100%)] text-white shadow-soft"
+                  : "border border-white/10 bg-white/[0.05] text-white/78"
+              }`}
+            >
+              <MessageCircle size={15} />
+              Chat
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onNavigate("analytics");
+                setIsMobileMenuOpen(false);
+              }}
+              className={`inline-flex items-center justify-center gap-2 rounded-[20px] px-3 py-3 text-sm font-semibold transition ${
+                page === "analytics"
+                  ? "bg-[linear-gradient(135deg,#6d28d9_0%,#4f46e5_52%,#06b6d4_100%)] text-white shadow-soft"
+                  : "border border-white/10 bg-white/[0.05] text-white/78"
+              }`}
+            >
+              <BarChart3 size={15} />
+              Analytics
+            </button>
+          </div>
+
+          <div className="mt-3 flex min-h-0 flex-1">
+            <Sidebar
+              sessions={sessions}
+              activeSessionId={activeSessionId}
+              setActiveSessionId={setActiveSessionId}
+              createChat={createChat}
+              removeChat={removeChat}
+              owner={user.email}
+              drawerMode
+              onAfterAction={() => setIsMobileMenuOpen(false)}
+              className="h-full flex-1"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={onLogout}
+            className="mt-3 inline-flex items-center justify-center gap-2 rounded-[22px] border border-white/12 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.1]"
+          >
+            <LogOut size={15} />
+            Logout
+          </button>
+        </aside>
+      </div>
+
       <section
-        className={`relative mx-auto w-full max-w-[1440px] p-3 sm:p-4 lg:p-6 ${
-          page === "chat" ? "lg:h-[calc(100vh-4.5rem)] lg:overflow-hidden" : ""
+        className={`energy-app-content relative mx-auto w-full max-w-[1440px] px-0 pb-0 pt-[4.55rem] sm:p-3 sm:pt-3 lg:px-6 lg:pb-5 lg:pt-4 ${
+          page === "chat" ? "min-h-[calc(100svh-4.55rem)] lg:min-h-[calc(100vh-5.2rem)]" : ""
         }`}
       >
+        <CommandPalette
+          open={isCommandPaletteOpen}
+          isAdmin={Boolean(user?.isAdmin)}
+          onClose={() => setIsCommandPaletteOpen(false)}
+          onNavigate={onNavigate}
+          onNewChat={() => {
+            onNavigate("chat");
+            createChat();
+          }}
+          onLogout={onLogout}
+        />
+
         {!user.emailVerified ? (
           <StatusBanner
             tone="neutral"
@@ -251,7 +439,7 @@ function AppShell({
                 type="button"
                 onClick={resendVerification}
                 disabled={isResendingVerification}
-                className="inline-flex items-center gap-2 rounded-xl border border-[#d8cca2] bg-white/80 px-3 py-2 font-semibold text-[#5a4814] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="energy-space-secondary inline-flex px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isResendingVerification ? <Loader2 size={14} className="animate-spin" /> : <MailCheck size={14} />}
                 Resend verification
@@ -273,31 +461,60 @@ function AppShell({
 
         {syncError ? <StatusBanner tone="error">{syncError}</StatusBanner> : null}
 
-        {isHydrating ? (
-          <div className="flex min-h-[55vh] items-center justify-center rounded-[34px] border border-white/70 bg-white/75 p-6 shadow-soft backdrop-blur">
-            <div className="inline-flex items-center gap-3 rounded-2xl border border-[#d8dfd8] bg-[#fbfcfa] px-5 py-3 text-sm text-[#365041]">
-              <Loader2 size={16} className="animate-spin" />
-              Loading your private chats
+        <div key={page} className="energy-page-enter h-full">
+          {isHydrating ? (
+            <div className="energy-panel energy-sheen flex min-h-[55vh] items-center justify-center p-6">
+              <div className="energy-panel energy-sheen inline-flex items-center gap-3 rounded-[24px] px-5 py-3 text-sm text-[#365041]">
+                <Loader2 size={16} className="animate-spin" />
+                Loading your private chats
+              </div>
             </div>
-          </div>
-        ) : page === "chat" ? (
-          <div className="grid gap-4 lg:h-full lg:grid-cols-[300px_minmax(0,1fr)]">
-            <Sidebar
-              sessions={sessions}
-              activeSessionId={activeSessionId}
-              setActiveSessionId={setActiveSessionId}
-              createChat={createChat}
-              removeChat={removeChat}
-              owner={user.email}
-            />
-            <section className="grid min-h-0 gap-3 lg:h-full lg:grid-rows-[minmax(0,1fr)_auto]">
-              <ChatWindow messages={activeSession?.messages || []} isLoading={isLoading} userName={user.name} />
-              <Composer isLoading={isLoading} onSend={sendMessage} mode={activeMode} setMode={setActiveMode} />
-            </section>
-          </div>
-        ) : (
-          <AnalyticsPage sessions={sessions} />
-        )}
+          ) : page === "chat" ? (
+            <div className="energy-workspace-grid grid min-h-[calc(100svh-4.55rem)] gap-0 sm:gap-2 md:gap-3 lg:grid-cols-[248px_minmax(0,1fr)] xl:grid-cols-[264px_minmax(0,1fr)]">
+              <div className="hidden lg:block lg:h-full">
+                <Sidebar
+                  sessions={sessions}
+                  activeSessionId={activeSessionId}
+                  setActiveSessionId={setActiveSessionId}
+                  createChat={createChat}
+                  removeChat={removeChat}
+                  owner={user.email}
+                />
+              </div>
+              <section className="energy-workspace-main grid min-h-0 grid-rows-[auto_auto] gap-0 sm:gap-2 lg:content-start">
+                <ChatWindow
+                  messages={activeSession?.messages || []}
+                  isLoading={isLoading}
+                  userName={user.name}
+                  workspaceMode={workspaceMode}
+                  onReusePrompt={(payload) =>
+                    setComposerSeed({
+                      value: typeof payload === "string" ? payload : payload?.content || "",
+                      attachments: Array.isArray(payload?.attachments) ? payload.attachments : [],
+                      nonce: Date.now()
+                    })
+                  }
+                  onRegenerate={regenerateLastReply}
+                  onFeedback={feedbackMessage}
+                />
+                <Composer
+                  isLoading={isLoading}
+                  onSend={sendMessage}
+                  onStop={stopGeneration}
+                  mode={activeMode}
+                  setMode={setActiveMode}
+                  workspaceMode={workspaceMode}
+                  setWorkspaceMode={setWorkspaceMode}
+                  prefillText={composerSeed.value}
+                  prefillAttachments={composerSeed.attachments}
+                  prefillNonce={composerSeed.nonce}
+                />
+              </section>
+            </div>
+          ) : (
+            <AnalyticsPage sessions={sessions} />
+          )}
+        </div>
       </section>
     </main>
   );
@@ -325,23 +542,46 @@ export default function App() {
     createChat,
     removeChat,
     sendMessage,
+    stopGeneration,
+    regenerateLastReply,
+    feedbackMessage,
     isLoading,
     isHydrating,
     syncError,
     activeMode,
-    setActiveMode
+    setActiveMode,
+    workspaceMode,
+    setWorkspaceMode
   } = useChat({ enabled: Boolean(isAuthenticated && user?.emailVerified) });
 
   const [route, setRoute] = useState(parseRoute());
 
   useEffect(() => {
     const onHashChange = () => setRoute(parseRoute());
+    const onPopState = () => setRoute(parseRoute());
     window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener("hashchange", onHashChange);
+      window.removeEventListener("popstate", onPopState);
+    };
   }, []);
 
   function navigate(page, params = {}) {
-    window.location.hash = hashForPage(page, params);
+    if (page === "admin") {
+      window.history.pushState({}, "", "/admin");
+      setRoute(parseRoute());
+      return;
+    }
+
+    const targetHash = hashForPage(page, params);
+    if (window.location.pathname === "/admin") {
+      window.history.pushState({}, "", `/${targetHash}`);
+      setRoute(parseRoute());
+      return;
+    }
+
+    window.location.hash = targetHash;
   }
 
   useEffect(() => {
@@ -349,13 +589,18 @@ export default function App() {
       return;
     }
 
-    if (!isAuthenticated && APP_ROUTES.has(route.page)) {
+    if (!isAuthenticated && (APP_ROUTES.has(route.page) || ADMIN_ROUTES.has(route.page))) {
       navigate("login");
       return;
     }
 
-    if (isAuthenticated && user && !user.emailVerified && APP_ROUTES.has(route.page)) {
+    if (isAuthenticated && user && !user.emailVerified && (APP_ROUTES.has(route.page) || ADMIN_ROUTES.has(route.page))) {
       navigate("verify-email", { email: user.email });
+      return;
+    }
+
+    if (isAuthenticated && user?.emailVerified && ADMIN_ROUTES.has(route.page) && !user?.isAdmin) {
+      navigate("home");
       return;
     }
 
@@ -368,8 +613,8 @@ export default function App() {
 
   if (isBootstrapping) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#edf3ee] px-4">
-        <div className="inline-flex items-center gap-3 rounded-[24px] border border-[#d8dfd8] bg-white px-5 py-4 text-sm text-[#365041] shadow-soft">
+      <main className="flex min-h-screen items-center justify-center bg-[linear-gradient(180deg,#020307_0%,#07101b_100%)] px-4 text-white">
+        <div className="inline-flex items-center gap-3 rounded-[24px] border border-white/10 bg-[linear-gradient(160deg,rgba(11,15,24,0.92)_0%,rgba(10,22,32,0.86)_100%)] px-5 py-4 text-sm text-white/78 shadow-[0_28px_72px_-42px_rgba(0,0,0,1)]">
           <Loader2 size={16} className="animate-spin" />
           Loading Energy AI
         </div>
@@ -381,6 +626,10 @@ export default function App() {
     return <HomePage isAuthenticated={isAuthenticated} user={user} onNavigate={navigate} />;
   }
 
+  if (page === "admin" && isAuthenticated && user?.emailVerified && user?.isAdmin) {
+    return <AdminPage user={user} onNavigate={navigate} />;
+  }
+
   if (!isAuthenticated && PUBLIC_ROUTES.has(page)) {
     if (page === "reset-password" || page === "verify-email") {
       return (
@@ -388,8 +637,8 @@ export default function App() {
           mode={page}
           token={route.token}
           email={route.email}
-          onVerifyEmail={async (tokenValue) => {
-            const result = await verifyEmail(tokenValue);
+          onVerifyEmail={async (tokenValue, emailValue) => {
+            const result = await verifyEmail(tokenValue, emailValue);
             await refreshUser().catch(() => null);
             return result;
           }}
@@ -431,8 +680,8 @@ export default function App() {
         mode={page}
         token={route.token}
         email={user.email}
-        onVerifyEmail={async (tokenValue) => {
-          const result = await verifyEmail(tokenValue);
+        onVerifyEmail={async (tokenValue, emailValue) => {
+          const result = await verifyEmail(tokenValue, emailValue);
           await refreshUser();
           return result;
         }}
@@ -450,15 +699,20 @@ export default function App() {
       sessions={sessions}
       activeSession={activeSession}
       activeSessionId={activeSessionId}
-      setActiveSessionId={setActiveSessionId}
-      createChat={createChat}
-      removeChat={removeChat}
-      sendMessage={sendMessage}
-      isLoading={isLoading}
-      isHydrating={isHydrating}
-      syncError={syncError}
+        setActiveSessionId={setActiveSessionId}
+        createChat={createChat}
+        removeChat={removeChat}
+        sendMessage={sendMessage}
+        stopGeneration={stopGeneration}
+        regenerateLastReply={regenerateLastReply}
+        feedbackMessage={feedbackMessage}
+        isLoading={isLoading}
+        isHydrating={isHydrating}
+        syncError={syncError}
       activeMode={activeMode}
       setActiveMode={setActiveMode}
+      workspaceMode={workspaceMode}
+      setWorkspaceMode={setWorkspaceMode}
       onNavigate={navigate}
       onLogout={async () => {
         await logout();

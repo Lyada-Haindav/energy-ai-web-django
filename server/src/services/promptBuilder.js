@@ -7,6 +7,11 @@ const SHARED_DIRECTIVES = [
   "If the request is ambiguous and details are required, ask one concise clarifying question."
 ].join(" ");
 
+const PROMPT_MAX_MESSAGES = Number(process.env.PROMPT_MAX_MESSAGES || 6);
+const PROMPT_MAX_MESSAGE_CHARS = Number(process.env.PROMPT_MAX_MESSAGE_CHARS || 650);
+const PROMPT_MAX_ATTACHMENT_MESSAGE_CHARS = Number(process.env.PROMPT_MAX_ATTACHMENT_MESSAGE_CHARS || 14500);
+const ATTACHMENT_CONTEXT_MARKER = "[ATTACHED_FILES]";
+
 const SYSTEM_BY_ROLE = {
   fast: [
     "You are Energy AI's low-energy model.",
@@ -29,11 +34,40 @@ const SYSTEM_BY_ROLE = {
   ].join(" ")
 };
 
+function compactMessageContent(content) {
+  const raw = String(content || "").trim().replace(/\r\n/g, "\n");
+  const preserveFormatting = raw.includes(ATTACHMENT_CONTEXT_MARKER) || raw.includes("```");
+  const text = preserveFormatting ? raw : raw.replace(/\s+/g, " ");
+  const maxChars = text.includes(ATTACHMENT_CONTEXT_MARKER) ? PROMPT_MAX_ATTACHMENT_MESSAGE_CHARS : PROMPT_MAX_MESSAGE_CHARS;
+  if (text.length <= maxChars) {
+    return text;
+  }
+  return `${text.slice(0, maxChars)}...`;
+}
+
+function selectPromptMessages(messages, intent = null) {
+  const safeMessages = Array.isArray(messages) ? messages : [];
+  if (safeMessages.length <= 1) {
+    return safeMessages;
+  }
+
+  if (intent?.ignoreConversationContext) {
+    return safeMessages.slice(-1);
+  }
+
+  if (!intent?.previousIsMeaningful) {
+    return safeMessages.slice(-3);
+  }
+
+  return safeMessages.slice(-PROMPT_MAX_MESSAGES);
+}
+
 export function buildPrompt(messages, role, options = {}) {
-  const { knowledgeContext = "", intent = null } = options;
+  const { knowledgeContext = "", intent = null, workspaceMode = "general" } = options;
   const system = SYSTEM_BY_ROLE[role] || SYSTEM_BY_ROLE.fast;
-  const transcript = messages
-    .map((message) => `${message.role.toUpperCase()}: ${message.content}`)
+  const normalizedWorkspaceMode = normalizeWorkspaceMode(workspaceMode || intent?.workspaceMode);
+  const transcript = selectPromptMessages(messages, intent)
+    .map((message) => `${message.role.toUpperCase()}: ${compactMessageContent(message.content)}`)
     .join("\n");
 
   const sections = [system];
@@ -71,6 +105,31 @@ export function buildPrompt(messages, role, options = {}) {
     );
   }
 
+  if (normalizedWorkspaceMode !== "general") {
+    sections.push(
+      [
+        "[WORKSPACE_MODE]",
+        `mode=${normalizedWorkspaceMode}`,
+        `label=${workspaceModeLabel(normalizedWorkspaceMode)}`,
+        `instructions=${workspaceModeInstructions(normalizedWorkspaceMode)}`,
+        "[/WORKSPACE_MODE]"
+      ].join("\n")
+    );
+  }
+
+  if (transcript.includes(ATTACHMENT_CONTEXT_MARKER)) {
+    sections.push(
+      [
+        "[ATTACHMENT_POLICY]",
+        "When attached files are present, ground the answer in that file context before giving generic advice.",
+        "Quote short snippets only when needed, and call out the exact file names that matter.",
+        "If the attached files are incomplete, say what is missing and what to inspect next.",
+        "[/ATTACHMENT_POLICY]"
+      ].join("\n")
+    );
+  }
+
   sections.push(`${transcript}\nASSISTANT:`);
   return sections.join("\n\n");
 }
+import { normalizeWorkspaceMode, workspaceModeInstructions, workspaceModeLabel } from "./workspaceMode.js";

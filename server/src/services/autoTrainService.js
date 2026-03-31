@@ -15,6 +15,12 @@ const AUTO_TRAIN_COOLDOWN_MS = Number(process.env.AUTO_TRAIN_COOLDOWN_MINUTES ||
 const USER_DATA_PATH = path.resolve(
   process.env.USER_TRAIN_DATA_PATH || path.join(PROJECT_ROOT, "training/data/local/user_live_pairs.jsonl")
 );
+const USER_CANDIDATE_DATA_PATH = path.resolve(
+  process.env.USER_TRAIN_CANDIDATE_DATA_PATH || path.join(PROJECT_ROOT, "training/data/local/user_live_candidates.jsonl")
+);
+const USER_REJECTED_DATA_PATH = path.resolve(
+  process.env.USER_TRAIN_REJECTED_DATA_PATH || path.join(PROJECT_ROOT, "training/data/local/user_rejected_pairs.jsonl")
+);
 const PUBLIC_DATA_PATH = path.resolve(
   process.env.PUBLIC_TRAIN_DATA_PATH || path.join(PROJECT_ROOT, "training/data/public/merged_public_chat.jsonl")
 );
@@ -38,6 +44,13 @@ const ABUSIVE_PATTERN = /\b(fuck|idiot|stupid|moron|dumb|shut\s*up)\b/i;
 
 let trainingInProgress = false;
 let lastTrainCompletedAt = 0;
+let lastTrainStartedAt = 0;
+let lastTrainResult = {
+  status: "idle",
+  startedAt: 0,
+  completedAt: 0,
+  detail: ""
+};
 
 function normalize(text) {
   return String(text || "").replace(/\s+/g, " ").trim();
@@ -73,11 +86,48 @@ async function appendUserPair(prompt, completion) {
     prompt,
     completion,
     source: "live_user_chat",
+    quality_signal: "candidate",
+    created_at: new Date().toISOString()
+  };
+
+  await fs.mkdir(path.dirname(USER_CANDIDATE_DATA_PATH), { recursive: true });
+  await fs.appendFile(USER_CANDIDATE_DATA_PATH, `${JSON.stringify(payload)}\n`, "utf-8");
+}
+
+async function appendApprovedPair(prompt, completion, metadata = {}) {
+  const payload = {
+    prompt,
+    completion,
+    source: metadata.source || "user_feedback_approved",
+    feedback: metadata.feedback || "upvote",
+    quality_signal: metadata.qualitySignal || "approved",
+    model: metadata.model || "",
+    role: metadata.role || "",
+    energy_mode: metadata.energyMode || "",
+    route_reason: metadata.routeReason || "",
     created_at: new Date().toISOString()
   };
 
   await fs.mkdir(path.dirname(USER_DATA_PATH), { recursive: true });
   await fs.appendFile(USER_DATA_PATH, `${JSON.stringify(payload)}\n`, "utf-8");
+}
+
+async function appendRejectedPair(prompt, completion, metadata = {}) {
+  const payload = {
+    prompt,
+    completion,
+    source: metadata.source || "user_feedback_rejected",
+    feedback: metadata.feedback || "downvote",
+    quality_signal: "rejected",
+    model: metadata.model || "",
+    role: metadata.role || "",
+    energy_mode: metadata.energyMode || "",
+    route_reason: metadata.routeReason || "",
+    created_at: new Date().toISOString()
+  };
+
+  await fs.mkdir(path.dirname(USER_REJECTED_DATA_PATH), { recursive: true });
+  await fs.appendFile(USER_REJECTED_DATA_PATH, `${JSON.stringify(payload)}\n`, "utf-8");
 }
 
 async function countJsonlRows(filePath) {
@@ -106,6 +156,19 @@ async function readAutoTrainState() {
     };
   } catch {
     return { last_trained_lines: 0 };
+  }
+}
+
+async function readJsonFile(filePath) {
+  if (!(await fileExists(filePath))) {
+    return null;
+  }
+
+  try {
+    const raw = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
   }
 }
 
@@ -205,6 +268,30 @@ async function runTrainingJob() {
   return success;
 }
 
+function markTrainingStarted(detail = "running") {
+  lastTrainStartedAt = Date.now();
+  lastTrainResult = {
+    status: "running",
+    startedAt: lastTrainStartedAt,
+    completedAt: 0,
+    detail
+  };
+}
+
+function markTrainingFinished(ok, detail = "") {
+  const completedAt = Date.now();
+  if (ok) {
+    lastTrainCompletedAt = completedAt;
+  }
+
+  lastTrainResult = {
+    status: ok ? "success" : "failed",
+    startedAt: lastTrainStartedAt,
+    completedAt,
+    detail
+  };
+}
+
 export async function maybeAutoTrain() {
   if (!AUTO_TRAIN_ENABLED) {
     return;
@@ -225,13 +312,14 @@ export async function maybeAutoTrain() {
   }
 
   trainingInProgress = true;
+  markTrainingStarted(`auto with ${newExamples} new examples`);
   try {
     console.log(`[auto-train] starting with ${newExamples} new examples`);
     const ok = await runTrainingJob();
     if (ok) {
-      lastTrainCompletedAt = Date.now();
       await writeAutoTrainState(totalLines);
     }
+    markTrainingFinished(ok, ok ? "auto training completed" : "auto training failed");
   } finally {
     trainingInProgress = false;
   }
@@ -246,5 +334,128 @@ export async function recordUserTrainingPair({ prompt, completion }) {
   }
 
   await appendUserPair(cleanPrompt, cleanCompletion);
+}
+
+export async function recordFeedbackTrainingPair({
+  prompt,
+  completion,
+  feedback,
+  replacement,
+  meta = {}
+}) {
+  const cleanPrompt = normalize(prompt);
+  const cleanCompletion = normalize(completion);
+  const cleanReplacement = normalize(replacement);
+  const signal = String(feedback || "").trim().toLowerCase();
+
+  if (!cleanPrompt || !cleanCompletion || !["up", "down"].includes(signal)) {
+    return {
+      recorded: false,
+      trained: false
+    };
+  }
+
+  if (signal === "up") {
+    if (shouldSkipPair(cleanPrompt, cleanCompletion)) {
+      return {
+        recorded: false,
+        trained: false
+      };
+    }
+
+    await appendApprovedPair(cleanPrompt, cleanCompletion, {
+      ...meta,
+      source: "user_feedback_upvote",
+      feedback: "upvote",
+      qualitySignal: "approved"
+    });
+    void maybeAutoTrain();
+    return {
+      recorded: true,
+      trained: true
+    };
+  }
+
+  await appendRejectedPair(cleanPrompt, cleanCompletion, {
+    ...meta,
+    source: "user_feedback_downvote",
+    feedback: "downvote"
+  });
+
+  if (!cleanReplacement || shouldSkipPair(cleanPrompt, cleanReplacement)) {
+    return {
+      recorded: true,
+      trained: false
+    };
+  }
+
+  await appendApprovedPair(cleanPrompt, cleanReplacement, {
+    ...meta,
+    source: "user_feedback_correction",
+    feedback: "correction",
+    qualitySignal: "corrected"
+  });
   void maybeAutoTrain();
+  return {
+    recorded: true,
+    trained: true
+  };
+}
+
+export async function triggerManualAutoTrain() {
+  if (trainingInProgress) {
+    return {
+      started: false,
+      status: "already-running"
+    };
+  }
+
+  trainingInProgress = true;
+  markTrainingStarted("manual retrain requested");
+
+  void (async () => {
+    try {
+      const ok = await runTrainingJob();
+      if (ok) {
+        const totalLines = await countJsonlRows(USER_DATA_PATH);
+        await writeAutoTrainState(totalLines);
+      }
+      markTrainingFinished(ok, ok ? "manual retrain completed" : "manual retrain failed");
+    } catch (error) {
+      markTrainingFinished(false, error instanceof Error ? error.message : "manual retrain failed");
+    } finally {
+      trainingInProgress = false;
+    }
+  })();
+
+  return {
+    started: true,
+    status: "running"
+  };
+}
+
+export async function getAutoTrainStatus() {
+  const [approvedLines, candidateLines, rejectedLines, metadata] = await Promise.all([
+    countJsonlRows(USER_DATA_PATH),
+    countJsonlRows(USER_CANDIDATE_DATA_PATH),
+    countJsonlRows(USER_REJECTED_DATA_PATH),
+    readJsonFile(path.join(OUT_DIR, "metadata.json"))
+  ]);
+
+  return {
+    enabled: AUTO_TRAIN_ENABLED,
+    inProgress: trainingInProgress,
+    minNewExamples: AUTO_TRAIN_MIN_NEW_EXAMPLES,
+    cooldownMs: AUTO_TRAIN_COOLDOWN_MS,
+    lastTrainStartedAt,
+    lastTrainCompletedAt,
+    lastTrainResult,
+    files: {
+      approved: approvedLines,
+      candidates: candidateLines,
+      rejected: rejectedLines
+    },
+    modelDir: OUT_DIR,
+    metadata
+  };
 }

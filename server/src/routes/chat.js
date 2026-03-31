@@ -1,9 +1,11 @@
 import { buildPrompt } from "../services/promptBuilder.js";
+import { enrichMessagesWithAttachmentContext, extractMessageAttachments, messageHasAttachments } from "../services/attachmentContext.js";
 import { recordUserTrainingPair } from "../services/autoTrainService.js";
 import { analyzeUserIntent } from "../services/intentAnalyzer.js";
 import { fetchKnowledgeContext } from "../services/knowledgeService.js";
 import { chooseRoute } from "../services/routerService.js";
 import { generateTextForRole } from "../services/modelClient.js";
+import { inferWorkspaceMode, normalizeWorkspaceMode } from "../services/workspaceMode.js";
 
 const SIMPLE_SKIP_PATTERN =
   /^(hi|hello|hey|yo|good|great|nice|ok|okay|thanks|thank you|cool|how are you)\b/i;
@@ -22,18 +24,24 @@ const KNOWLEDGE_TRIGGER_PATTERN =
   /^(what|who|when|where|why|how)\b|\b(explain|define|overview|latest|history)\b/i;
 const DISCOVERY_TRIGGER_PATTERN =
   /\b(best|top|recommend|suggest|buy|purchase|download|builder|free|paid|pricing|price|official)\b/i;
+const STREAM_CHUNK_CHARS = Number(process.env.CHAT_STREAM_CHUNK_CHARS || 220);
 
 function writeChunk(res, payload) {
   res.write(`${JSON.stringify(payload)}\n`);
 }
 
 function tokenize(text) {
-  const words = text.split(/(\s+)/).filter(Boolean);
-  return words.length > 0 ? words : [text];
-}
+  const value = String(text || "");
+  if (!value) {
+    return [""];
+  }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  const chunks = [];
+  for (let index = 0; index < value.length; index += STREAM_CHUNK_CHARS) {
+    chunks.push(value.slice(index, index + STREAM_CHUNK_CHARS));
+  }
+
+  return chunks;
 }
 
 function shouldFetchKnowledge(text, intent = null) {
@@ -105,8 +113,40 @@ function buildKnowledgeQuery(messages, intent = null) {
   return latestTrimmed;
 }
 
+function directReplyForIntent(intent, latestUserText) {
+  const normalized = String(latestUserText || "").trim().toLowerCase();
+
+  if (intent?.type === "casual") {
+    if (/^(thanks|thank you)\b/i.test(normalized)) {
+      return "You are welcome. What do you want to work on next?";
+    }
+    if (/^(bye|goodbye|see you|see ya|later)\b/i.test(normalized)) {
+      return "Bye. If you need anything later, I will be here.";
+    }
+    if (/^how are (you|u)\b/i.test(normalized)) {
+      return "I am doing well. What do you want to work on next?";
+    }
+    return "Hi. How can I help today?";
+  }
+
+  if (intent?.type === "identity") {
+    return "I am Energy AI, your local multi-model assistant. I stay light for simple prompts and go deeper for harder work.";
+  }
+
+  if (intent?.type === "datetime") {
+    const now = new Date();
+    const formatted = new Intl.DateTimeFormat("en-IN", {
+      dateStyle: "full",
+      timeStyle: "short"
+    }).format(now);
+    return `Right now it is ${formatted}.`;
+  }
+
+  return "";
+}
+
 export async function chatRoute(req, res) {
-  const { messages = [], mode = "auto" } = req.body || {};
+  const { messages = [], mode = "auto", workspaceMode = "general" } = req.body || {};
 
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: "`messages` must be a non-empty array." });
@@ -115,15 +155,75 @@ export async function chatRoute(req, res) {
   res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
   res.setHeader("Cache-Control", "no-cache, no-transform");
   res.setHeader("Connection", "keep-alive");
+  res.flushHeaders?.();
 
-  const intent = analyzeUserIntent({ messages, mode });
-  const latestUserText = [...messages].reverse().find((message) => message.role === "user")?.content || "";
-  const knowledgeQuery = buildKnowledgeQuery(messages, intent);
-  const knowledgePromise = intent.shouldFetchKnowledge && shouldFetchKnowledge(knowledgeQuery, intent)
-    ? fetchKnowledgeContext(knowledgeQuery, { intent })
+  const userMessages = messages.filter((message) => message.role === "user");
+  const enrichedMessages = enrichMessagesWithAttachmentContext(messages);
+  const latestUserMessage = [...messages].reverse().find((message) => message.role === "user") || null;
+  const latestUserText = latestUserMessage?.content || "";
+  const latestAttachments = extractMessageAttachments(latestUserMessage);
+  const hasAttachmentContext = enrichedMessages.some(messageHasAttachments);
+  const recentAttachmentContext = userMessages.slice(-3).some((message) => extractMessageAttachments(message).length > 0);
+  const requestedWorkspaceMode = normalizeWorkspaceMode(workspaceMode);
+  const effectiveWorkspaceMode =
+    requestedWorkspaceMode === "general"
+      ? inferWorkspaceMode({
+          text: latestUserText,
+          attachments: latestAttachments,
+          messages: enrichedMessages
+        })
+      : requestedWorkspaceMode;
+  const intent = analyzeUserIntent({ messages: enrichedMessages, mode, workspaceMode: effectiveWorkspaceMode });
+  const attachmentAwareIntent = hasAttachmentContext
+    ? {
+        ...intent,
+        shouldFetchKnowledge: false,
+        needsDepth: true
+      }
+    : intent;
+  const directReply =
+    effectiveWorkspaceMode === "general" && latestAttachments.length === 0 && !recentAttachmentContext
+      ? directReplyForIntent(attachmentAwareIntent, latestUserText)
+      : "";
+
+  if (directReply) {
+    writeChunk(res, {
+      type: "start",
+      model: "energy-instant",
+      routeReason: `direct ${intent.type} response`,
+      role: "fast",
+      energyMode: "low",
+      workspaceMode: effectiveWorkspaceMode,
+      sources: []
+    });
+    writeChunk(res, { type: "token", token: directReply });
+    writeChunk(res, {
+      type: "final",
+      model: "energy-instant",
+      routeReason: `direct ${intent.type} response`,
+      role: "fast",
+      energyMode: "low",
+      energyScore: "A",
+      workspaceMode: effectiveWorkspaceMode,
+      sources: []
+    });
+    res.end();
+    return;
+  }
+
+  const knowledgeQuery = buildKnowledgeQuery(enrichedMessages, attachmentAwareIntent);
+  const knowledgePromise = !hasAttachmentContext && attachmentAwareIntent.shouldFetchKnowledge && shouldFetchKnowledge(knowledgeQuery, attachmentAwareIntent)
+    ? fetchKnowledgeContext(knowledgeQuery, { intent: attachmentAwareIntent })
     : Promise.resolve({ contextText: "", sources: [] });
-  const [route, knowledge] = await Promise.all([chooseRoute({ messages, mode, intent }), knowledgePromise]);
-  const prompt = buildPrompt(messages, route.targetRole, { knowledgeContext: knowledge.contextText, intent });
+  const [route, knowledge] = await Promise.all([
+    chooseRoute({ messages: enrichedMessages, mode, intent: attachmentAwareIntent, workspaceMode: effectiveWorkspaceMode }),
+    knowledgePromise
+  ]);
+  const prompt = buildPrompt(enrichedMessages, route.targetRole, {
+    knowledgeContext: knowledge.contextText,
+    intent: attachmentAwareIntent,
+    workspaceMode: effectiveWorkspaceMode
+  });
 
   writeChunk(res, {
     type: "start",
@@ -131,24 +231,27 @@ export async function chatRoute(req, res) {
     routeReason: route.reason,
     role: route.targetRole,
     energyMode: route.energyMode,
+    workspaceMode: effectiveWorkspaceMode,
     sources: knowledge.sources
   });
 
   try {
+    const trainingPrompt =
+      latestUserText.trim() ||
+      latestAttachments.map((attachment) => attachment.name).filter(Boolean).join(", ");
     const generation = await generateTextForRole({
       role: route.targetRole,
       prompt,
-      intent,
+      intent: attachmentAwareIntent,
       knowledge
     });
     void recordUserTrainingPair({
-      prompt: latestUserText,
+      prompt: trainingPrompt,
       completion: generation.text
     });
 
     for (const token of tokenize(generation.text)) {
       writeChunk(res, { type: "token", token });
-      await sleep(route.targetRole === "deep" ? 16 : 9);
     }
 
     writeChunk(res, {
@@ -158,6 +261,7 @@ export async function chatRoute(req, res) {
       role: route.targetRole,
       energyMode: route.energyMode,
       energyScore: route.energyScore,
+      workspaceMode: effectiveWorkspaceMode,
       sources: knowledge.sources
     });
   } catch (error) {
@@ -175,6 +279,7 @@ export async function chatRoute(req, res) {
       role: route.targetRole,
       energyMode: route.energyMode,
       energyScore: route.energyScore,
+      workspaceMode: effectiveWorkspaceMode,
       sources: knowledge.sources
     });
   }

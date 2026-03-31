@@ -2,6 +2,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
+import { normalizeNaturalLanguageText } from "./textNormalization.js";
+import { normalizeWorkspaceMode } from "./workspaceMode.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,6 +54,9 @@ const FULL_CODE_PATTERN =
 const FULL_CODE_PREFERENCE_PATTERN =
   /\b(always|every\s*time|each\s*time|from\s+now\s+on|whenever|try\s+to\s+give(?:\s+me)?\s+everytime)\b.*\b(full code|complete code|full program|with main)\b/i;
 const GENERAL_CAPABILITY_PATTERN = /\b(know everything|know all|all topics|everything)\b/i;
+const ATTACHMENT_MARKER_PATTERN = /\[ATTACHED_FILES\][\s\S]*?\[\/ATTACHED_FILES\]/g;
+const WORKSPACE_MODE_PATTERN = /\[WORKSPACE_MODE\]\nmode=([a-z-]+)[\s\S]*?\[\/WORKSPACE_MODE\]/i;
+const WEAK_ATTACHMENT_PROMPT_PATTERN = /^(?:\.+|check|see|look|look at this|see this|this|it|attached|attachment|analyze|review|explain|summari[sz]e|read this|inspect this)\b/i;
 const DOWNLOAD_REQUEST_PATTERN =
   /\b(download|installer|installation|setup|apk|exe|dmg|zip|tar\.gz|download link|official link|get the link)\b/i;
 const SHOPPING_REQUEST_PATTERN =
@@ -362,12 +367,42 @@ async function loadOwnArtifact(role) {
     parsed = JSON.parse(gunzipSync(compressed).toString("utf-8"));
   }
 
+  if (Array.isArray(parsed?.pairs) && !(parsed.__retrievalIndex instanceof Map)) {
+    const retrievalIndex = new Map();
+
+    parsed.pairs.forEach((pair, index) => {
+      const promptTokens = Array.isArray(pair.prompt_tokens) ? pair.prompt_tokens : tokenizeWords(pair.prompt || "");
+      const filteredTokens = [...new Set(filterTokens(promptTokens))];
+      pair._promptTokens = filteredTokens;
+
+      for (const token of filteredTokens) {
+        const existing = retrievalIndex.get(token);
+        if (existing) {
+          existing.push(index);
+        } else {
+          retrievalIndex.set(token, [index]);
+        }
+      }
+    });
+
+    parsed.__retrievalIndex = retrievalIndex;
+  }
+
   ownArtifactCache.set(cacheKey, parsed);
   return parsed;
 }
 
 export function clearOwnArtifactCache() {
   ownArtifactCache.clear();
+}
+
+export async function primeOwnArtifacts() {
+  const roles = ["fast", "deep", "router"];
+  const eligibleRoles = roles.filter((role) => providerFor(role) === "own");
+
+  for (const role of eligibleRoles) {
+    await loadOwnArtifact(role);
+  }
 }
 
 function extractLatestUserText(prompt) {
@@ -417,6 +452,869 @@ function extractAssistantTurns(prompt) {
 function extractKnowledgeContext(prompt) {
   const match = prompt.match(/\[KNOWLEDGE_CONTEXT\]\n([\s\S]*?)\n\[\/KNOWLEDGE_CONTEXT\]/);
   return match?.[1]?.trim() || "";
+}
+
+function extractWorkspaceMode(prompt) {
+  const match = String(prompt || "").match(WORKSPACE_MODE_PATTERN);
+  return normalizeWorkspaceMode(match?.[1] || "general");
+}
+
+function stripAttachmentContext(text) {
+  return String(text || "").replace(ATTACHMENT_MARKER_PATTERN, "").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function extractAttachmentsFromText(text) {
+  const source = String(text || "");
+  const blocks = [];
+  const regex =
+    /\[FILE_(\d+)\]\nname=(.+?)\nlanguage=(.+?)\nsize=(.+?)\ntruncated=(yes|no)\ncontent:\n```([a-zA-Z0-9_+-]*)\n([\s\S]*?)\n```\n\[\/FILE_\1\]/g;
+  let match = regex.exec(source);
+
+  while (match) {
+    blocks.push({
+      id: match[1],
+      name: match[2].trim(),
+      language: (match[3] || match[6] || "text").trim(),
+      size: Number(match[4]) || 0,
+      truncated: match[5] === "yes",
+      content: String(match[7] || "").trim()
+    });
+    match = regex.exec(source);
+  }
+
+  return blocks;
+}
+
+function attachmentDescriptor(attachment) {
+  return `${attachment.name} (${attachment.language})`;
+}
+
+function shouldReuseRecentAttachments(currentText, previousPlainText = "") {
+  const trimmed = String(currentText || "").trim();
+  if (!trimmed) {
+    return true;
+  }
+
+  if (isLowInformationPrompt(trimmed)) {
+    return true;
+  }
+
+  if (isContextualFollowup(trimmed, previousPlainText)) {
+    return true;
+  }
+
+  return /\b(this|attached|attachment|file|page|html|code|structure|review|debug|fix|bug|issue|improve|responsive|accessibility|explain|continue|again|more)\b/i.test(
+    trimmed
+  );
+}
+
+function summarizeHtmlAttachment(attachment) {
+  const content = String(attachment.content || "");
+  const lowered = content.toLowerCase();
+  const notes = [];
+  const issues = [];
+  const titleMatch = content.match(/<title[^>]*>([^<]+)<\/title>/i);
+  const sections = [
+    /<header\b/i.test(content) ? "header" : "",
+    /<nav\b/i.test(content) ? "nav" : "",
+    /<main\b/i.test(content) ? "main" : "",
+    /<section\b/i.test(content) ? "section" : "",
+    /<footer\b/i.test(content) ? "footer" : ""
+  ].filter(Boolean);
+
+  if (titleMatch?.[1]) {
+    notes.push(`Page title: ${titleMatch[1].trim()}.`);
+  }
+  if (sections.length > 0) {
+    notes.push(`Main structure includes ${sections.join(", ")}.`);
+  }
+  if (/<form\b/i.test(content)) {
+    notes.push("Contains a form flow.");
+  }
+  if (/<script\b/i.test(content)) {
+    notes.push("Contains script tags.");
+  }
+  if (/<style\b/i.test(content) || /\sstyle=/.test(content)) {
+    notes.push("Uses CSS styling in the file.");
+  }
+
+  if (!/<meta[^>]+name=["']viewport["']/i.test(lowered)) {
+    issues.push("Missing viewport meta tag for mobile scaling.");
+  }
+  if (!/<html[^>]+\blang=/i.test(lowered)) {
+    issues.push("Missing `lang` attribute on the `<html>` tag.");
+  }
+
+  const imagesWithoutAlt = [...content.matchAll(/<img\b(?![^>]*\balt=)[^>]*>/gi)].length;
+  if (imagesWithoutAlt > 0) {
+    issues.push(`${imagesWithoutAlt} image tag(s) do not include alt text.`);
+  }
+
+  const inlineStyleCount = [...content.matchAll(/\sstyle=/gi)].length;
+  if (inlineStyleCount > 0) {
+    issues.push(`${inlineStyleCount} inline style attribute(s) may make maintenance harder.`);
+  }
+
+  return {
+    notes,
+    issues
+  };
+}
+
+function summarizeSourceAttachment(attachment) {
+  const content = String(attachment.content || "");
+  const lines = content.split("\n").filter(Boolean).length;
+  const notes = [`Looks like a ${attachment.language} source file with about ${lines} non-empty lines.`];
+
+  if (/^\s*import\b/m.test(content)) {
+    notes.push("Includes imports.");
+  }
+  if (/^\s*export\b/m.test(content)) {
+    notes.push("Exports code for reuse.");
+  }
+  if (/\bfunction\b|\=\>\s*[{(]/.test(content)) {
+    notes.push("Contains function logic.");
+  }
+  if (/\bclass\b/.test(content)) {
+    notes.push("Contains class-based structure.");
+  }
+  if (/<[A-Za-z][^>]*>/.test(content) && /return\s*\(/.test(content)) {
+    notes.push("Looks related to UI markup or a component render path.");
+  }
+
+  return {
+    notes,
+    issues: []
+  };
+}
+
+function summarizeAttachment(attachment) {
+  if (attachment.language === "html") {
+    return summarizeHtmlAttachment(attachment);
+  }
+
+  return summarizeSourceAttachment(attachment);
+}
+
+function attachmentActionPrompt(attachments, workspaceMode = "general") {
+  const names = attachments.map((attachment) => `\`${attachment.name}\``).join(", ");
+  const modeLine = workspaceMode !== "general" ? `Active workspace mode: \`${workspaceMode}\`.` : "";
+  return [
+    `I still have ${names} in context.`,
+    modeLine,
+    "",
+    "Tell me what you want next:",
+    "- `review this file for bugs and bad patterns`",
+    "- `explain the structure of this file step by step`",
+    "- `improve responsiveness, accessibility, or code quality here`",
+    "- `rewrite this file with the improvements`"
+  ].join("\n");
+}
+
+function attachmentStructureResponse(attachments) {
+  const primary = attachments[0];
+  if (!primary) {
+    return "";
+  }
+
+  if (primary.language === "html") {
+    const content = String(primary.content || "");
+    const titleMatch = content.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const hasHead = /<head\b/i.test(content);
+    const hasHeader = /<header\b/i.test(content);
+    const hasNav = /<nav\b/i.test(content);
+    const hasMain = /<main\b/i.test(content);
+    const hasSection = /<section\b/i.test(content);
+    const hasFooter = /<footer\b/i.test(content);
+    const hasScript = /<script\b/i.test(content);
+
+    return [
+      `1) File role`,
+      `- \`${primary.name}\` is the page shell for ${titleMatch?.[1]?.trim() || "this view"}.`,
+      "",
+      "2) Document setup",
+      hasHead
+        ? "- The `<head>` section sets page metadata and the tab title."
+        : "- The file should ideally include a `<head>` section for metadata and title.",
+      "",
+      "3) Page layout",
+      hasHeader ? "- `<header>` is the top brand/intro area." : "",
+      hasNav ? "- `<nav>` holds navigation links or menu structure." : "",
+      hasMain ? "- `<main>` contains the primary page content." : "",
+      hasSection ? "- `<section>` breaks the main content into a focused block." : "",
+      hasFooter ? "- `<footer>` closes the page with secondary information or links." : "",
+      "",
+      "4) Behavior layer",
+      hasScript
+        ? "- Script tags add interactive behavior after the layout is rendered."
+        : "- There is no script layer here, so the page is mostly static markup.",
+      "",
+      "5) What to inspect next",
+      "- Check whether the landmarks match the visual sections users actually see.",
+      "- Verify mobile support, accessibility labels, and whether scripts depend on elements being present."
+    ]
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  const summary = summarizeAttachment(primary);
+  return [
+    "1) File role",
+    `- \`${primary.name}\` is a ${primary.language} file.`,
+    "",
+    "2) High-level structure",
+    ...summary.notes.map((note) => `- ${note}`),
+    "",
+    "3) What to inspect next",
+    "- Trace the main entry points first.",
+    "- Then inspect state/data flow, side effects, and output/render logic."
+  ].join("\n");
+}
+
+function attachmentReviewResponse(attachments) {
+  const primary = attachments[0];
+  if (!primary) {
+    return "";
+  }
+
+  const summary = summarizeAttachment(primary);
+  const strengths = [];
+
+  if (primary.language === "html") {
+    const content = String(primary.content || "");
+    if (/<header\b/i.test(content) || /<nav\b/i.test(content) || /<main\b/i.test(content) || /<footer\b/i.test(content)) {
+      strengths.push("Uses semantic layout landmarks, which is a good base for accessibility and maintainability.");
+    }
+    if (/<title[^>]*>[^<]+<\/title>/i.test(content)) {
+      strengths.push("Defines a page title.");
+    }
+    if (/<script\b/i.test(content)) {
+      strengths.push("Already has a behavior layer, so interaction upgrades can be added without restructuring the whole page.");
+    }
+  } else {
+    strengths.push(...summary.notes);
+  }
+
+  const issues = summary.issues.length > 0 ? summary.issues : ["No obvious structural issue jumped out from the attached excerpt, but a deeper file-by-file review would still be useful."];
+
+  const fixes =
+    primary.language === "html"
+      ? [
+          summary.issues.some((issue) => issue.includes("viewport"))
+            ? "Add `<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">` in `<head>`."
+            : "",
+          summary.issues.some((issue) => issue.includes("`lang`"))
+            ? "Add `lang=\"en\"` on the `<html>` tag."
+            : "",
+          summary.issues.some((issue) => issue.includes("alt text"))
+            ? "Add meaningful `alt` text to informative images, and empty alt text only for decorative ones."
+            : "",
+          summary.issues.some((issue) => issue.includes("inline style"))
+            ? "Move repeated inline styling into CSS classes for easier maintenance and responsiveness."
+            : "",
+          "Check that navigation items, buttons, and form controls have visible labels and keyboard focus styles."
+        ].filter(Boolean)
+      : ["Trace the main entry points, shared state, and any side effects before changing implementation details."];
+
+  return [
+    "1) Good parts",
+    ...strengths.map((item) => `- ${item}`),
+    "",
+    "2) Review findings",
+    ...issues.map((item) => `- ${item}`),
+    "",
+    "3) First fixes to make",
+    ...fixes.map((item) => `- ${item}`)
+  ].join("\n");
+}
+
+function attachmentImprovementResponse(attachments) {
+  const primary = attachments[0];
+  if (!primary) {
+    return "";
+  }
+
+  if (primary.language === "html") {
+    const summary = summarizeAttachment(primary);
+    const suggestions = [
+      "Add a responsive viewport meta tag so the layout scales correctly on phones.",
+      "Use fluid widths, `max-width`, and stacked mobile breakpoints instead of fixed desktop-only spacing.",
+      "Make navigation and major sections collapse cleanly on smaller screens.",
+      "Add `lang` on `<html>` and meaningful `alt` text to images for accessibility.",
+      "Ensure buttons, links, and any interactive elements have visible focus states and accessible labels.",
+      "Move repeated presentational styles into reusable CSS classes if they are currently inline."
+    ];
+
+    return [
+      "1) Responsiveness upgrades",
+      "- Add `<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">` if it is missing.",
+      "- Audit containers, grids, and navigation so they adapt to narrow screens without horizontal overflow.",
+      "- Prefer flexible spacing and typography scaling for mobile.",
+      "",
+      "2) Accessibility upgrades",
+      ...[
+        summary.issues.some((issue) => issue.includes("`lang`")) ? "Add `lang=\"en\"` on `<html>`." : "Keep semantic landmarks and verify heading order.",
+        summary.issues.some((issue) => issue.includes("alt text")) ? "Add alt text to images that communicate content." : "Verify interactive elements are keyboard reachable.",
+        "Check color contrast and visible focus styling."
+      ].map((item) => `- ${item}`),
+      "",
+      "3) Code quality upgrades",
+      ...suggestions.slice(3).map((item) => `- ${item}`),
+      "",
+      "4) Best next step",
+      "- Ask me `rewrite this file with the improvements` if you want concrete HTML/CSS changes."
+    ].join("\n");
+  }
+
+  return [
+    "1) Improve structure",
+    "- Split large responsibilities into smaller focused units.",
+    "- Name key functions/components by intent instead of implementation detail.",
+    "",
+    "2) Improve maintainability",
+    "- Reduce duplicated logic.",
+    "- Centralize shared constants and validation.",
+    "",
+    "3) Improve reliability",
+    "- Add guards for bad input, loading states, and error handling.",
+    "- Add lightweight tests around the main behavior before refactoring."
+  ].join("\n");
+}
+
+function detectAttachmentStack(attachments) {
+  const tags = new Set();
+  const evidence = [];
+
+  function add(tag, clue) {
+    tags.add(tag);
+    if (clue && evidence.length < 6) {
+      evidence.push(clue);
+    }
+  }
+
+  attachments.forEach((attachment) => {
+    const name = String(attachment.name || "").toLowerCase();
+    const content = String(attachment.content || "");
+
+    if (attachment.language === "html" || name.endsWith(".html")) {
+      add("HTML", `${attachment.name} is an HTML document.`);
+    }
+    if (attachment.language === "css" || name.endsWith(".css")) {
+      add("CSS", `${attachment.name} adds stylesheet logic.`);
+    }
+    if (attachment.language === "javascript" || name.endsWith(".js") || name.endsWith(".mjs")) {
+      add("JavaScript", `${attachment.name} is a JavaScript file.`);
+    }
+    if (attachment.language === "typescript" || name.endsWith(".ts") || name.endsWith(".tsx")) {
+      add("TypeScript", `${attachment.name} is a TypeScript file.`);
+    }
+    if (attachment.language === "python" || name.endsWith(".py")) {
+      add("Python", `${attachment.name} is a Python file.`);
+    }
+    if (name === "package.json") {
+      add("Node.js", `${attachment.name} usually marks a Node-based project.`);
+    }
+    if (name.includes("vite.config")) {
+      add("Vite", `${attachment.name} suggests a Vite setup.`);
+    }
+    if (name.includes("tailwind.config") || /\bclassName\s*=\s*["'][^"']*(?:px-|py-|mx-|my-|text-|bg-)/.test(content)) {
+      add("Tailwind CSS", `${attachment.name} shows Tailwind-style utility usage.`);
+    }
+    if (/\buseState\b|\buseEffect\b|from\s+["']react["']|className=/.test(content) || /\.(jsx|tsx)$/i.test(name)) {
+      add("React", `${attachment.name} contains React-style component hints.`);
+    }
+    if (/\bexpress\s*\(|\bapp\.use\s*\(|\brouter\./.test(content)) {
+      add("Express", `${attachment.name} contains Express server patterns.`);
+    }
+    if (/\bmongo(db|ose)?\b/i.test(content)) {
+      add("MongoDB", `${attachment.name} references MongoDB-related APIs.`);
+    }
+    if (/\bfetch\s*\(|axios|\/api\//i.test(content)) {
+      add("HTTP API layer", `${attachment.name} contains network or API calls.`);
+    }
+  });
+
+  return {
+    tags: Array.from(tags),
+    evidence
+  };
+}
+
+function attachmentBugFixResponse(attachments) {
+  const primary = attachments[0];
+  const summary = primary ? summarizeAttachment(primary) : { issues: [], notes: [] };
+  const likelyCauses =
+    primary?.language === "html"
+      ? [
+          summary.issues.some((issue) => issue.includes("viewport")) ? "Mobile layout can break because viewport metadata is missing." : "",
+          summary.issues.some((issue) => issue.includes("alt text")) ? "Accessibility issues are likely because images are missing descriptive alt text." : "",
+          "Interactive elements may feel broken when focus states, labels, or event wiring are weak."
+        ].filter(Boolean)
+      : [
+          "Check the first failing entry point, side effects, and assumptions about missing or undefined data.",
+          "Verify whether shared state or async flow is producing stale or incomplete values."
+        ];
+
+  return [
+    "1) Likely root causes",
+    ...(likelyCauses.length > 0 ? likelyCauses : ["The attached excerpt does not expose a single obvious root cause yet."]).map((item) => `- ${item}`),
+    "",
+    "2) What to inspect first",
+    "- Reproduce the failure with the smallest possible path.",
+    "- Check the nearest inputs, event handlers, and state or DOM assumptions around the broken area.",
+    "",
+    "3) Fastest safe fix path",
+    "- Patch the highest-confidence issue first.",
+    "- Re-test the exact failure case and one nearby edge case before moving on."
+  ].join("\n");
+}
+
+function attachmentTestsResponse(attachments) {
+  const primary = attachments[0];
+  const htmlLike = primary?.language === "html";
+  const tests = htmlLike
+    ? [
+        "Render smoke test for the main landmarks and heading content.",
+        "Responsive layout check around small mobile widths.",
+        "Accessibility checks for alt text, heading order, and keyboard focus.",
+        "Navigation or button interaction test for the main call to action."
+      ]
+    : [
+        "Happy-path unit test for the primary function or component behavior.",
+        "Edge-case test around empty, null, or malformed input.",
+        "Failure-path test for async errors or invalid state.",
+        "Regression test that locks in the current expected output."
+      ];
+
+  return [
+    "1) Best test targets",
+    ...tests.map((item) => `- ${item}`),
+    "",
+    "2) Test strategy",
+    "- Start with one smoke test and one failure-path test.",
+    "- Add focused edge cases only after the main flow is protected."
+  ].join("\n");
+}
+
+function attachmentAccessibilityResponse(attachments) {
+  const primary = attachments[0];
+  const summary = primary ? summarizeAttachment(primary) : { issues: [] };
+  const lines = [
+    "1) Accessibility focus",
+    "- Verify semantic landmarks, heading order, labels, and keyboard reachability.",
+    "- Check visible focus states and contrast on interactive controls."
+  ];
+
+  if (summary.issues.some((issue) => issue.includes("alt text"))) {
+    lines.push("- Add meaningful alt text to informative images.");
+  }
+  if (summary.issues.some((issue) => issue.includes("`lang`"))) {
+    lines.push("- Add `lang` to the root HTML tag.");
+  }
+
+  lines.push("", "2) Best next fix", "- Start with missing semantics and focus styling before cosmetic cleanup.");
+  return lines.join("\n");
+}
+
+function attachmentPerformanceResponse() {
+  return [
+    "1) Performance review",
+    "- Look for unnecessary large media, repeated DOM work, and blocking scripts or styles.",
+    "- Prefer smaller payloads, lazy behavior where possible, and stable layouts on first render.",
+    "",
+    "2) First wins",
+    "- Compress heavy assets and avoid oversized images.",
+    "- Remove duplicate work in render or event paths.",
+    "- Keep layout and script initialization lightweight on mobile."
+  ].join("\n");
+}
+
+function attachmentSecurityResponse() {
+  return [
+    "1) Security review focus",
+    "- Validate all external input and trust boundaries.",
+    "- Check auth assumptions, secret handling, and unsafe DOM or HTML injection paths.",
+    "",
+    "2) First checks",
+    "- Make sure user-controlled data is escaped or sanitized before rendering.",
+    "- Verify protected actions require the right auth and validation layers.",
+    "- Check that tokens, API keys, and private values are never exposed in client code."
+  ].join("\n");
+}
+
+function attachmentLintResponse() {
+  return [
+    "1) Lint and code-quality pass",
+    "- Standardize naming, spacing, and repeated patterns.",
+    "- Remove dead branches, unused values, and noisy inline styling.",
+    "- Keep imports, exports, and component or function boundaries consistent.",
+    "",
+    "2) Best next fix",
+    "- Clean the highest-noise patterns first so real bugs become easier to spot."
+  ].join("\n");
+}
+
+function attachmentApiContractResponse() {
+  return [
+    "1) API contract review",
+    "- Identify request shape, response shape, auth expectations, and validation rules.",
+    "- Check error states, empty states, and versioning assumptions.",
+    "",
+    "2) Best next checks",
+    "- Make sure clients and server agree on required fields and status codes.",
+    "- Add explicit handling for invalid input, missing auth, and unexpected backend failures."
+  ].join("\n");
+}
+
+function attachmentErrorLogResponse(attachments) {
+  const primary = attachments[0];
+  const content = String(primary?.content || "");
+  const lines = content
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 14);
+  const interesting = lines.filter((line) => /(error|exception|failed|trace|warning)/i.test(line)).slice(0, 5);
+
+  return [
+    "1) Log highlights",
+    ...(interesting.length > 0 ? interesting : lines.slice(0, 5)).map((line) => `- ${line}`),
+    "",
+    "2) Root-cause workflow",
+    "- Start from the first real error, not the later cascade.",
+    "- Match the failing function, file, or endpoint to the closest code path in the project.",
+    "- Verify inputs, config, and environment assumptions around that point."
+  ].join("\n");
+}
+
+function attachmentStackDetectResponse(attachments) {
+  const detected = detectAttachmentStack(attachments);
+  const tags = detected.tags.length > 0 ? detected.tags : ["No strong stack signal yet from the current files."];
+  const nextFiles = ["package.json", "vite.config.*", "tailwind.config.*", "tsconfig.json", "server entrypoints", ".env example"];
+
+  return [
+    "1) Likely stack",
+    ...tags.map((tag) => `- ${tag}`),
+    "",
+    "2) Evidence",
+    ...(detected.evidence.length > 0 ? detected.evidence : ["- The current attachment set is too small for a stronger stack read."]),
+    "",
+    "3) Best next files to attach",
+    ...nextFiles.map((file) => `- ${file}`)
+  ].join("\n");
+}
+
+function attachmentModeResponse(workspaceMode, attachments) {
+  switch (workspaceMode) {
+    case "code-review":
+      return attachmentReviewResponse(attachments);
+    case "bug-fix":
+      return attachmentBugFixResponse(attachments);
+    case "refactor":
+      return attachmentImprovementResponse(attachments);
+    case "tests":
+      return attachmentTestsResponse(attachments);
+    case "explain-code":
+      return attachmentStructureResponse(attachments);
+    case "error-log":
+      return attachmentErrorLogResponse(attachments);
+    case "api-contract":
+      return attachmentApiContractResponse(attachments);
+    case "a11y":
+      return attachmentAccessibilityResponse(attachments);
+    case "performance":
+      return attachmentPerformanceResponse(attachments);
+    case "security":
+      return attachmentSecurityResponse(attachments);
+    case "stack-detect":
+      return attachmentStackDetectResponse(attachments);
+    case "lint":
+      return attachmentLintResponse(attachments);
+    default:
+      return "";
+  }
+}
+
+function workspaceModeKickoffResponse(workspaceMode) {
+  if (!workspaceMode || workspaceMode === "general") {
+    return "";
+  }
+
+  return [
+    `Workspace mode active: ${titleCase(workspaceMode)}.`,
+    "",
+    "Send the code, file, repo context, or error details you want me to inspect.",
+    "I will stay focused on that mode instead of giving a generic answer."
+  ].join("\n");
+}
+
+function titleFromAttachmentName(name) {
+  const base = String(name || "Page")
+    .replace(/\.[a-z0-9]+$/i, "")
+    .replace(/[-_]+/g, " ")
+    .trim();
+  return base ? base.replace(/\b\w/g, (char) => char.toUpperCase()) : "Page";
+}
+
+function inferAltTextFromTag(tag) {
+  const srcMatch = String(tag || "").match(/\bsrc=["']?([^"' >]+)["']?/i);
+  if (!srcMatch?.[1]) {
+    return "Content image";
+  }
+
+  const fileName = srcMatch[1].split("/").pop() || "";
+  const normalized = fileName.replace(/\.[a-z0-9]+$/i, "").replace(/[-_]+/g, " ").trim();
+  if (!normalized) {
+    return "Content image";
+  }
+
+  return normalized.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function ensureHtmlHead(documentText, title) {
+  let updated = documentText;
+  const changes = [];
+
+  if (!/<head\b/i.test(updated)) {
+    const headBlock = [
+      "<head>",
+      '  <meta charset="UTF-8">',
+      '  <meta name="viewport" content="width=device-width, initial-scale=1.0">',
+      `  <title>${title}</title>`,
+      "</head>"
+    ].join("\n");
+
+    if (/<html\b[^>]*>/i.test(updated)) {
+      updated = updated.replace(/<html\b[^>]*>/i, (match) => `${match}\n${headBlock}`);
+    } else {
+      updated = `${headBlock}\n${updated}`;
+    }
+
+    changes.push("Created a `<head>` section with charset, viewport, and title.");
+    return { updated, changes };
+  }
+
+  if (!/<meta\b[^>]*charset=/i.test(updated)) {
+    updated = updated.replace(/<head\b[^>]*>/i, (match) => `${match}\n  <meta charset="UTF-8">`);
+    changes.push("Added UTF-8 charset metadata.");
+  }
+
+  if (!/<meta\b[^>]*name=["']viewport["']/i.test(updated)) {
+    updated = updated.replace(/<head\b[^>]*>/i, (match) => `${match}\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">`);
+    changes.push("Added mobile viewport metadata.");
+  }
+
+  if (!/<title\b[^>]*>[\s\S]*?<\/title>/i.test(updated)) {
+    updated = updated.replace(/<head\b[^>]*>/i, (match) => `${match}\n  <title>${title}</title>`);
+    changes.push("Added a document title.");
+  }
+
+  return { updated, changes };
+}
+
+function addHtmlImprovementStyles(documentText) {
+  const marker = "/* energy-ai responsive hardening */";
+  if (documentText.includes(marker)) {
+    return {
+      updated: documentText,
+      changes: []
+    };
+  }
+
+  const styleBlock = [
+    "<style>",
+    `  ${marker}`,
+    "  * { box-sizing: border-box; }",
+    "  html { -webkit-text-size-adjust: 100%; }",
+    "  body { margin: 0; }",
+    "  img, svg, video { max-width: 100%; height: auto; display: block; }",
+    "  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {",
+    "    outline: 3px solid #7c3aed;",
+    "    outline-offset: 2px;",
+    "  }",
+    "  @media (max-width: 768px) {",
+    "    body { overflow-x: hidden; }",
+    "    header, nav, main, section, footer {",
+    "      width: 100%;",
+    "      max-width: 100%;",
+    "    }",
+    "  }",
+    "</style>"
+  ].join("\n");
+
+  if (/<\/head>/i.test(documentText)) {
+    return {
+      updated: documentText.replace(/<\/head>/i, `${styleBlock}\n</head>`),
+      changes: ["Added a lightweight responsive and focus-visible CSS hardening block."]
+    };
+  }
+
+  return {
+    updated: `${styleBlock}\n${documentText}`,
+    changes: ["Added a lightweight responsive and focus-visible CSS hardening block."]
+  };
+}
+
+function rewriteHtmlAttachment(attachment) {
+  let updated = String(attachment.content || "").trim();
+  const changes = [];
+  const title = titleFromAttachmentName(attachment.name);
+
+  if (!/^<!doctype html>/i.test(updated)) {
+    updated = `<!doctype html>\n${updated}`;
+    changes.push("Added the HTML5 doctype.");
+  }
+
+  if (/<html\b/i.test(updated) && !/<html\b[^>]*\blang=/i.test(updated)) {
+    updated = updated.replace(/<html\b([^>]*)>/i, '<html lang="en"$1>');
+    changes.push("Added `lang=\"en\"` to the `<html>` tag.");
+  }
+
+  const headResult = ensureHtmlHead(updated, title);
+  updated = headResult.updated;
+  changes.push(...headResult.changes);
+
+  const beforeAlt = updated;
+  updated = updated.replace(/<img\b(?![^>]*\balt=)([^>]*)>/gi, (match, attrs) => `<img${attrs} alt="${inferAltTextFromTag(match)}">`);
+  if (updated !== beforeAlt) {
+    changes.push("Added fallback `alt` text to images that were missing it.");
+  }
+
+  const styleResult = addHtmlImprovementStyles(updated);
+  updated = styleResult.updated;
+  changes.push(...styleResult.changes);
+
+  return {
+    updated,
+    changes: [...new Set(changes)]
+  };
+}
+
+function attachmentRewriteResponse(attachments) {
+  const primary = attachments[0];
+  if (!primary) {
+    return "";
+  }
+
+  if (primary.language === "html") {
+    const rewritten = rewriteHtmlAttachment(primary);
+    return [
+      "1) Changes applied",
+      ...rewritten.changes.map((item) => `- ${item}`),
+      "",
+      "2) Rewritten HTML",
+      "```html",
+      rewritten.updated,
+      "```"
+    ].join("\n");
+  }
+
+  return [
+    `I can rewrite \`${primary.name}\`, but this first pass is optimized for HTML attachments.`,
+    "Tell me whether you want a refactor, bug fix, cleanup, or performance pass for the file."
+  ].join("\n");
+}
+
+function shouldUseAttachmentAnalysis(userText, context) {
+  if (!Array.isArray(context.attachments) || context.attachments.length === 0) {
+    return false;
+  }
+
+  const plainPrompt = String(context.plainUserText || "").trim();
+  if (!plainPrompt) {
+    return true;
+  }
+
+  if (isLowInformationPrompt(plainPrompt) || WEAK_ATTACHMENT_PROMPT_PATTERN.test(normalizePatternText(plainPrompt))) {
+    return true;
+  }
+
+  const words = countWords(plainPrompt);
+  return (
+    words <= 10 &&
+    /\b(review|analy[sz]e|explain|summari[sz]e|inspect|check|read|debug|fix|bug|issue|error|problem|improve|responsive|responsiveness|accessibility|quality|mobile|ui|rewrite|update|regenerate|better|stack|framework|technology|tech|test|tests|security|performance|lint|contract|log)\b/i.test(
+      plainPrompt
+    )
+  );
+}
+
+function attachmentAnalysisResponse(userText, context) {
+  const attachments = Array.isArray(context.attachments) ? context.attachments : [];
+  if (attachments.length === 0) {
+    return "";
+  }
+
+  const plainPrompt = String(context.plainUserText || "").trim();
+  const normalizedPlainPrompt = normalizePatternText(plainPrompt);
+  const workspaceMode = normalizeWorkspaceMode(context.workspaceMode);
+
+  if ((!plainPrompt || ACK_PATTERN.test(normalizedPlainPrompt) || WEAK_ATTACHMENT_PROMPT_PATTERN.test(normalizedPlainPrompt)) && workspaceMode !== "general") {
+    return attachmentModeResponse(workspaceMode, attachments) || attachmentActionPrompt(attachments, workspaceMode);
+  }
+
+  if (!plainPrompt || ACK_PATTERN.test(normalizedPlainPrompt)) {
+    return attachmentActionPrompt(attachments, workspaceMode);
+  }
+
+  if (
+    /\b(explain|walk me through|describe)\b/i.test(plainPrompt) &&
+    /\b(structure|layout|flow|page|file)\b/i.test(plainPrompt)
+  ) {
+    return attachmentStructureResponse(attachments);
+  }
+
+  if (/\b(rewrite|regenerate|update|return|give)\b/i.test(plainPrompt) && /\b(file|html|page|improvement|improvements|fixed version|better version)\b/i.test(plainPrompt)) {
+    return attachmentRewriteResponse(attachments);
+  }
+
+  if (/\b(review|inspect|check)\b/i.test(plainPrompt) && /\b(bug|bugs|bad pattern|bad patterns|issue|issues|problem|problems|quality)\b/i.test(plainPrompt)) {
+    return attachmentReviewResponse(attachments);
+  }
+
+  if (/\b(improve|fix|make better|upgrade|optimi[sz]e)\b/i.test(plainPrompt) && /\b(responsive|responsiveness|accessibility|code quality|quality|mobile|ui)\b/i.test(plainPrompt)) {
+    return attachmentImprovementResponse(attachments);
+  }
+
+  if (workspaceMode !== "general") {
+    const modeResponse = attachmentModeResponse(workspaceMode, attachments);
+    if (modeResponse) {
+      return modeResponse;
+    }
+  }
+
+  const lines = [
+    "1) Attached files",
+    ...attachments.map((attachment) => `- ${attachmentDescriptor(attachment)}`)
+  ];
+
+  const summaries = attachments.flatMap((attachment) => {
+    const summary = summarizeAttachment(attachment);
+    return summary.notes.map((note) => `- ${attachment.name}: ${note}`);
+  });
+
+  if (summaries.length > 0) {
+    lines.push("", "2) Quick read", ...summaries);
+  }
+
+  const issues = attachments.flatMap((attachment) => {
+    const summary = summarizeAttachment(attachment);
+    return summary.issues.map((issue) => `- ${attachment.name}: ${issue}`);
+  });
+
+  if (issues.length > 0) {
+    lines.push("", "3) Potential issues", ...issues);
+  }
+
+  lines.push(
+    "",
+    issues.length > 0 ? "4) Best next prompt" : "3) Best next prompt",
+    "- `review this file for bugs and bad patterns`",
+    "- `explain the structure of this file step by step`",
+    "- `improve responsiveness, accessibility, or code quality here`",
+    "- `rewrite this file with the improvements`"
+  );
+
+  return lines.join("\n");
 }
 
 function countWords(text) {
@@ -755,9 +1653,33 @@ function firstSentence(text) {
 }
 
 function buildGenerationState(prompt, intent = null, knowledge = null) {
-  const userTurns = extractUserTurns(prompt);
+  const rawUserTurns = extractUserTurns(prompt);
+  const userTurns = rawUserTurns.map((turn) => normalizeNaturalLanguageText(stripAttachmentContext(turn)));
   const assistantTurns = extractAssistantTurns(prompt);
-  const userText = userTurns[userTurns.length - 1] || extractLatestUserText(prompt);
+  const latestRawUserText = rawUserTurns[rawUserTurns.length - 1] || extractLatestUserText(prompt);
+  const plainUserText = normalizeNaturalLanguageText(stripAttachmentContext(latestRawUserText));
+  let attachments = extractAttachmentsFromText(latestRawUserText);
+  const workspaceMode = extractWorkspaceMode(prompt);
+
+  if (attachments.length === 0) {
+    for (let index = rawUserTurns.length - 2; index >= Math.max(0, rawUserTurns.length - 3); index -= 1) {
+      const candidate = extractAttachmentsFromText(rawUserTurns[index]);
+      if (candidate.length === 0) {
+        continue;
+      }
+      if (shouldReuseRecentAttachments(plainUserText, userTurns[userTurns.length - 2] || "")) {
+        attachments = candidate;
+      }
+      break;
+    }
+  }
+
+  const synthesizedAttachmentQuery =
+    attachments.length > 0 ? `analyze attached files ${attachments.map((attachment) => attachmentDescriptor(attachment)).join(", ")}` : "";
+  const userText =
+    attachments.length > 0 && isLowInformationPrompt(plainUserText)
+      ? synthesizedAttachmentQuery
+      : plainUserText || synthesizedAttachmentQuery || extractLatestUserText(prompt);
   const previousUserText = userTurns[userTurns.length - 2] || "";
   const secondPreviousUserText = userTurns[userTurns.length - 3] || "";
   const taskAnchorUserText = findTaskAnchorUserText(userTurns);
@@ -784,6 +1706,9 @@ function buildGenerationState(prompt, intent = null, knowledge = null) {
       taskAnchorUserText,
       preferFullCode,
       followup,
+      attachments,
+      workspaceMode,
+      plainUserText,
       knowledgeContext,
       knowledgeSources: Array.isArray(knowledge?.sources) ? knowledge.sources : []
     }
@@ -847,9 +1772,34 @@ function sanitizeCompletion(text, fallback) {
 
 function retrieveTopMatches(queryTokens, pairs, topK = 4) {
   const scored = [];
+  const filteredQueryTokens = [...new Set(filterTokens(queryTokens))];
+  const retrievalIndex = !Array.isArray(pairs) && pairs?.__retrievalIndex instanceof Map ? pairs.__retrievalIndex : null;
+  const sourcePairs = Array.isArray(pairs) ? pairs : pairs?.pairs || [];
+  const candidateIndexes = new Set();
 
-  for (const pair of pairs || []) {
-    const candidateTokens = Array.isArray(pair.prompt_tokens) ? pair.prompt_tokens : tokenizeWords(pair.prompt || "");
+  if (retrievalIndex && filteredQueryTokens.length > 0) {
+    for (const token of filteredQueryTokens) {
+      const indexes = retrievalIndex.get(token);
+      if (!indexes) {
+        continue;
+      }
+      for (const index of indexes) {
+        candidateIndexes.add(index);
+      }
+    }
+  }
+
+  const candidatePairs =
+    candidateIndexes.size > 0
+      ? [...candidateIndexes].map((index) => sourcePairs[index]).filter(Boolean)
+      : sourcePairs;
+
+  for (const pair of candidatePairs) {
+    const candidateTokens = Array.isArray(pair._promptTokens)
+      ? pair._promptTokens
+      : Array.isArray(pair.prompt_tokens)
+        ? pair.prompt_tokens
+        : tokenizeWords(pair.prompt || "");
     const score = scoreRetrieval(queryTokens, candidateTokens);
 
     if (score > 0) {
@@ -3059,6 +4009,14 @@ function composeFastResponse(userText, matches, ownModel, context, intent = null
     return definitionResponse(userText, matches, scopedContext.knowledgeContext);
   }
 
+  if (shouldUseAttachmentAnalysis(userText, scopedContext)) {
+    return attachmentAnalysisResponse(userText, scopedContext);
+  }
+
+  if (scopedContext.workspaceMode !== "general" && isLowInformationPrompt(userText)) {
+    return workspaceModeKickoffResponse(scopedContext.workspaceMode);
+  }
+
   if (codeRequest) {
     return codingImplementationResponse(codeText, {
       latestText: userText,
@@ -3272,6 +4230,14 @@ function composeDeepResponse(userText, matches, ownModel, context, intent = null
     );
   }
 
+  if (shouldUseAttachmentAnalysis(userText, scopedContext)) {
+    return buildDeepEnvelope(userText, attachmentAnalysisResponse(userText, scopedContext));
+  }
+
+  if (scopedContext.workspaceMode !== "general" && isLowInformationPrompt(userText)) {
+    return buildDeepEnvelope(userText, workspaceModeKickoffResponse(scopedContext.workspaceMode));
+  }
+
   if (codeRequest) {
     return codingImplementationResponse(codeText, {
       latestText: userText,
@@ -3392,7 +4358,7 @@ function composeDeepResponse(userText, matches, ownModel, context, intent = null
 
 function generateFromOwnModel(role, prompt, ownModel, intent = null, knowledge = null) {
   const { userText, queryTokens, context } = buildGenerationState(prompt, intent, knowledge);
-  const matches = retrieveTopMatches(queryTokens, ownModel.pairs || [], 4);
+  const matches = retrieveTopMatches(queryTokens, ownModel, role === "deep" ? 4 : 3);
 
   if (role === "deep") {
     return composeDeepResponse(userText, matches, ownModel, context, intent);

@@ -16,6 +16,10 @@ training/data/
 # Env
 .env
 server/.env
+server/data/app-data.json
+server/model-artifacts/own/deep.json
+server/model-artifacts/own/fast.json
+server/model-artifacts/own/router.json
 
 # OS
 .DS_Store

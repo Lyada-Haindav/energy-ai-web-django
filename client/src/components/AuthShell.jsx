@@ -1,100 +1,84 @@
-import { Flame, Leaf, TimerReset, Zap } from "lucide-react";
+import { Cpu, Sparkles } from "lucide-react";
+import EnergyBrand from "./EnergyBrand";
+import RobotStage from "./RobotStage";
 
 const MODE_COPY = {
   login: {
-    eyebrow: "Adaptive Model System",
-    title: "Fast when simple. Deep when it matters.",
-    description:
-      "Energy AI uses Low-Energy mode for faster response time on direct questions, and High-Energy mode for slower, deeper reasoning on harder work."
+    badge: "Access",
+    title: "Enter Energy AI",
+    description: "Fast routing, deep reasoning, and a darker workspace."
   },
   signup: {
-    eyebrow: "Energy Modes",
-    title: "Two models. Two response speeds.",
-    description:
-      "Low-Energy answers with speed and efficiency. High-Energy spends more time for coding, analysis, architecture, and complex reasoning."
+    badge: "Sign up",
+    title: "Create your workspace",
+    description: "Start with a cleaner dark interface and adaptive reasoning."
   },
   "forgot-password": {
-    eyebrow: "Response Timing",
-    title: "Short answers fast. Hard answers deep.",
-    description:
-      "Energy AI balances time and reasoning cost. Simple prompts return quickly, while difficult prompts can take longer to think through properly."
+    badge: "Recovery",
+    title: "Recover access",
+    description: "Get back into your private Energy AI workspace."
   },
   "reset-password": {
-    eyebrow: "Reasoning Budget",
-    title: "Speed for basics. Depth for complexity.",
-    description:
-      "The Fast model focuses on quick useful output. The Deep model uses more reasoning time to produce stronger analysis and more deliberate answers."
+    badge: "Reset",
+    title: "Set a new password",
+    description: "Secure the account and continue."
   },
   "verify-email": {
-    eyebrow: "Energy AI Models",
-    title: "One system with low-energy and high-energy thinking.",
-    description:
-      "Energy AI can stay lightweight for everyday prompts or move into a deeper mode when the request needs more time, structure, and reasoning."
+    badge: "Verify",
+    title: "Confirm your email",
+    description: "One more step before the workspace opens."
   }
 };
-
-function Feature({ icon: Icon, title, body }) {
-  return (
-    <div className="rounded-[24px] border border-white/10 bg-white/8 p-4 backdrop-blur">
-      <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-[#f6e7b4]">
-        <Icon size={16} />
-      </div>
-      <h3 className="text-sm font-semibold text-white">{title}</h3>
-      <p className="mt-1 text-sm text-white/70">{body}</p>
-    </div>
-  );
-}
 
 export default function AuthShell({ mode, children, footer }) {
   const copy = MODE_COPY[mode] || MODE_COPY.login;
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#f3efe4]">
+    <main className="energy-space-page relative min-h-screen overflow-hidden">
+      <div className="energy-space-stars opacity-90" />
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-y-0 left-0 w-full bg-[radial-gradient(circle_at_top_left,rgba(244,196,48,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(26,82,57,0.16),transparent_24%)]" />
-        <div className="absolute right-[-8rem] top-[-6rem] h-72 w-72 rounded-full bg-[#f2d7a4]/45 blur-3xl" />
-        <div className="absolute bottom-[-10rem] left-[-8rem] h-80 w-80 rounded-full bg-[#8fc0a9]/40 blur-3xl" />
+        <div className="absolute left-[10%] top-[14%] h-52 w-52 rounded-full bg-[#6d28d9]/18 blur-3xl" />
+        <div className="absolute right-[14%] top-[18%] h-64 w-64 rounded-full bg-[#06b6d4]/14 blur-3xl" />
+        <div className="absolute bottom-[12%] left-[24%] h-56 w-56 rounded-full bg-[#4f46e5]/14 blur-3xl" />
       </div>
 
-      <section className="relative mx-auto flex min-h-screen w-full max-w-[1380px] items-start px-4 py-5 lg:items-center lg:px-6 lg:py-8">
-        <div className="grid w-full gap-5 lg:grid-cols-[minmax(0,1.2fr)_460px] lg:gap-6">
-          <div className="overflow-hidden rounded-[32px] border border-[#143324]/12 bg-[linear-gradient(145deg,#0d2218_0%,#123526_48%,#45281b_100%)] p-5 text-white shadow-[0_45px_120px_-60px_rgba(15,47,32,0.75)] sm:rounded-[40px] sm:p-6 lg:p-8">
-            <div className="inline-flex items-center gap-3 rounded-full border border-white/12 bg-white/8 px-4 py-2 text-xs font-semibold text-[#f7e6ad] sm:text-sm">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-white/14 bg-white/10 text-white">
-                <Zap size={17} />
-              </span>
-              Energy AI Models
+      <section className="relative mx-auto flex min-h-screen w-full max-w-[1440px] items-center px-4 py-5 sm:px-6">
+        <div className="grid w-full gap-6 lg:grid-cols-[1.05fr_460px]">
+          <div className="animate-page-in">
+            <div className="energy-space-nav inline-flex rounded-full px-4 py-2">
+              <EnergyBrand size={38} showSubtitle={false} titleClassName="text-base" />
             </div>
 
-            <p className="mt-8 text-xs uppercase tracking-[0.26em] text-[#c5d8cc]">{copy.eyebrow}</p>
-            <h1 className="mt-3 max-w-2xl font-display text-3xl font-bold tracking-[-0.04em] text-white sm:text-5xl">
-              {copy.title}
-            </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/74 sm:text-base">{copy.description}</p>
+            <div className="mt-8 max-w-3xl">
+              <div className="energy-space-badge">
+                <Sparkles size={14} />
+                {copy.badge}
+              </div>
+              <h1 className="mt-6 font-display text-4xl font-bold tracking-[-0.06em] text-white sm:text-6xl">
+                {copy.title}
+              </h1>
+              <p className="mt-4 text-base leading-8 text-white/58 sm:text-lg">{copy.description}</p>
+            </div>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              <Feature
-                icon={Leaf}
-                title="Low-Energy Model"
-                body="Optimized for faster response time on direct questions, quick facts, and lightweight tasks."
-              />
-              <Feature
-                icon={Flame}
-                title="High-Energy Model"
-                body="Uses more time and reasoning depth for coding, debugging, architecture, and multi-step analysis."
-              />
-              <Feature
-                icon={TimerReset}
-                title="Auto Energy Balance"
-                body="Energy AI shifts between speed and depth so each answer matches the complexity of the prompt."
-              />
+            <div className="mt-10 flex flex-wrap gap-3">
+              <span className="energy-space-badge">
+                <Cpu size={14} />
+                adaptive core
+              </span>
+              <span className="energy-space-badge">source grounding</span>
+            </div>
+
+            <div className="mt-8 max-w-[760px]">
+              <RobotStage compact showReadouts={false} className="energy-auth-stage" />
             </div>
           </div>
 
           <div className="flex items-center justify-center">
-            <div className="w-full max-w-[520px] rounded-[28px] border border-[#143324]/10 bg-white/85 p-4 shadow-[0_35px_90px_-60px_rgba(15,47,32,0.65)] backdrop-blur sm:rounded-[34px] sm:p-6">
-              {children}
-              {footer ? <div className="mt-6 border-t border-[#d8dfd8] pt-4 text-sm text-[#4b6257]">{footer}</div> : null}
+            <div className="energy-auth-card animate-page-in w-full p-5 sm:p-6">
+              <div className="relative z-10">
+                {children}
+                {footer ? <div className="mt-6 border-t border-white/10 pt-4 text-sm text-white/56">{footer}</div> : null}
+              </div>
             </div>
           </div>
         </div>

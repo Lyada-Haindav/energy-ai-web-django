@@ -1,18 +1,15 @@
 function defaultApiBase() {
   if (typeof window === "undefined") {
-    return "http://localhost:8787";
+    return "http://127.0.0.1:8787";
   }
 
-  if (window.location.hostname === "localhost" && window.location.port === "5173") {
-    return "http://localhost:8787";
-  }
-
-  return window.location.origin;
+  return window.location.port === "5173" ? "" : window.location.origin;
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE || defaultApiBase();
 
 let authToken = "";
+let unauthorizedHandler = null;
 
 function authHeaders() {
   return authToken
@@ -20,6 +17,18 @@ function authHeaders() {
         Authorization: `Bearer ${authToken}`
       }
     : {};
+}
+
+function notifyUnauthorized(error) {
+  if (!authToken || typeof unauthorizedHandler !== "function") {
+    return;
+  }
+
+  unauthorizedHandler(error);
+}
+
+function unexpectedApiResponseMessage() {
+  return "The app reached the frontend dev server instead of the backend API. Keep the backend running and use the Vite proxy, or set VITE_API_BASE.";
 }
 
 async function readError(response) {
@@ -30,6 +39,10 @@ async function readError(response) {
     if (data?.error) {
       return data.error;
     }
+  }
+
+  if (contentType.includes("text/html")) {
+    return unexpectedApiResponseMessage();
   }
 
   const text = await response.text().catch(() => "");
@@ -50,6 +63,9 @@ async function request(path, { method = "GET", body, signal } = {}) {
   if (!response.ok) {
     const error = new Error(await readError(response));
     error.status = response.status;
+    if (response.status === 401) {
+      notifyUnauthorized(error);
+    }
     throw error;
   }
 
@@ -57,11 +73,22 @@ async function request(path, { method = "GET", body, signal } = {}) {
     return null;
   }
 
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    const error = new Error(contentType.includes("text/html") ? unexpectedApiResponseMessage() : "Unexpected response from the API.");
+    error.status = response.status;
+    throw error;
+  }
+
   return response.json();
 }
 
 export function setAuthToken(token) {
   authToken = String(token || "");
+}
+
+export function setUnauthorizedHandler(handler) {
+  unauthorizedHandler = typeof handler === "function" ? handler : null;
 }
 
 export function register(payload) {
@@ -129,19 +156,52 @@ export function saveChats(sessions) {
   });
 }
 
-export async function streamChat({ messages, mode, signal, onEvent }) {
+export function submitChatFeedback(payload) {
+  return request("/api/chats/feedback", {
+    method: "POST",
+    body: payload
+  });
+}
+
+export function fetchAdminOverview() {
+  return request("/api/admin/overview");
+}
+
+export function triggerAdminRetrain() {
+  return request("/api/admin/retrain", {
+    method: "POST"
+  });
+}
+
+export async function streamChat({ messages, mode, workspaceMode, signal, onEvent }) {
   const response = await fetch(`${API_BASE}/api/chat`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...authHeaders()
     },
-    body: JSON.stringify({ messages, mode }),
+    body: JSON.stringify({ messages, mode, workspaceMode }),
     signal
   });
 
-  if (!response.ok || !response.body) {
+  if (!response.ok) {
     const error = new Error(await readError(response));
+    error.status = response.status;
+    if (response.status === 401) {
+      notifyUnauthorized(error);
+    }
+    throw error;
+  }
+
+  if (!response.body) {
+    const error = new Error("The chat response ended before any tokens arrived.");
+    error.status = response.status;
+    throw error;
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("text/html")) {
+    const error = new Error(unexpectedApiResponseMessage());
     error.status = response.status;
     throw error;
   }

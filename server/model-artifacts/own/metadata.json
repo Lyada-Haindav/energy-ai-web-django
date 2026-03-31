@@ -1,0 +1,23 @@
+{
+  "inputs": [
+    "training/data/energy_alignment_seed.jsonl",
+    "training/data/contest_alignment_seed.jsonl",
+    "training/data/chat_behavior_seed.jsonl",
+    "training/data/coding_followup_seed.jsonl",
+    "training/data/public/merged_public_chat.jsonl",
+    "training/data/local/user_live_pairs.jsonl"
+  ],
+  "output_dir": "server/model-artifacts/own",
+  "deep_threshold": 3,
+  "max_pairs": 18000,
+  "max_duplicate_prompts": 6,
+  "max_fast_to_deep_ratio": 6.0,
+  "model_names": {
+    "router": "energy-router-own-v1",
+    "fast": "energy-low-own-v1",
+    "deep": "energy-high-own-v1"
+  },
+  "router_examples": 66367,
+  "fast_examples": 56886,
+  "deep_examples": 9481
+}

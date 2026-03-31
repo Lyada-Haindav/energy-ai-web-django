@@ -59,6 +59,44 @@ Render environment variables:
 
 For email links on Render, the backend automatically falls back to Render's external URL when `APP_BASE_URL` is not set.
 
+## Deploy On EC2 t3.micro
+
+This repo can also run on a single Amazon EC2 `t3.micro` as one Node process behind nginx.
+
+What is included:
+
+- `ecosystem.config.cjs`: PM2 app config with conservative memory settings
+- `server/.env.ec2.example`: production env template for EC2
+- `deploy/ec2-t3-micro/setup-ubuntu.sh`: first-time Ubuntu server setup
+- `deploy/ec2-t3-micro/update-app.sh`: install, build, and reload the app
+- `deploy/ec2-t3-micro/nginx.energy-ai.conf`: nginx reverse-proxy config
+
+Recommended shape for t3.micro:
+
+- Use the built-in `own` model artifacts, not local heavy models or Ollama
+- Keep one PM2 process only
+- Use file storage with `APP_DATA_DIR=/var/lib/energy-ai` unless you already have MongoDB
+- Add a 1 GB swap file so `npm run build` is safer on the small instance
+
+Typical flow on the EC2 machine:
+
+```bash
+git clone <your-repo-url> /var/www/energy-ai
+cd /var/www/energy-ai
+SERVER_NAME=your-domain.com bash deploy/ec2-t3-micro/setup-ubuntu.sh
+cp server/.env.ec2.example server/.env
+# edit server/.env with real values
+bash deploy/ec2-t3-micro/update-app.sh
+curl http://127.0.0.1:3000/api/health
+```
+
+If you want HTTPS, point your domain to the instance and then install a certificate after nginx is up:
+
+```bash
+sudo apt-get install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com
+```
+
 ## Create Your Own Local Models (Now)
 
 From project root:
