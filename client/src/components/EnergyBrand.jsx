@@ -65,9 +65,9 @@ export default function EnergyBrand({
     <div className={`flex min-w-0 items-center gap-3 ${className}`}>
       <EnergyLogo size={size} className="shrink-0 drop-shadow-[0_18px_30px_rgba(79,70,229,0.28)]" />
       <div className="min-w-0">
-        <p className={`truncate font-display font-bold tracking-[-0.04em] text-white ${titleClassName}`}>Energy AI</p>
+        <p className={`truncate font-display font-bold tracking-[-0.04em] text-[#173324] ${titleClassName}`}>Energy AI</p>
         {showSubtitle ? (
-          <p className={`truncate uppercase tracking-[0.22em] text-white/48 ${subtitleClassName}`}>Low-energy speed. High-energy depth.</p>
+          <p className={`truncate uppercase tracking-[0.22em] text-[#6f8075] ${subtitleClassName}`}>Low-energy speed. High-energy depth.</p>
         ) : null}
       </div>
     </div>

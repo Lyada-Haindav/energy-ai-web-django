@@ -4,6 +4,7 @@
     "training/data/contest_alignment_seed.jsonl",
     "training/data/chat_behavior_seed.jsonl",
     "training/data/coding_followup_seed.jsonl",
+    "training/data/prompt_understanding_seed.jsonl",
     "training/data/public/merged_public_chat.jsonl",
     "training/data/local/user_live_pairs.jsonl"
   ],

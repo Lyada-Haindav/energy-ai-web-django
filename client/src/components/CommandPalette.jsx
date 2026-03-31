@@ -8,18 +8,18 @@ function ActionButton({ action, onRun }) {
     <button
       type="button"
       onClick={() => onRun(action)}
-      className="flex w-full items-center justify-between gap-3 rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-3 text-left transition hover:bg-white/[0.08]"
+      className="flex w-full items-center justify-between gap-3 rounded-[22px] border border-[#d6ddd0] bg-[linear-gradient(135deg,rgba(255,252,246,0.9)_0%,rgba(248,244,234,0.86)_100%)] px-4 py-3 text-left transition hover:bg-[#fffaf3]"
     >
       <span className="flex items-center gap-3">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-white/82">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#d6ddd0] bg-white/82 text-[#173324]">
           <Icon size={16} />
         </span>
         <span>
-          <span className="block text-sm font-semibold text-white">{action.label}</span>
-          <span className="block text-xs text-white/46">{action.hint}</span>
+          <span className="block text-sm font-semibold text-[#173324]">{action.label}</span>
+          <span className="block text-xs text-[#627267]">{action.hint}</span>
         </span>
       </span>
-      <span className="text-[11px] uppercase tracking-[0.18em] text-white/36">{action.shortcut}</span>
+      <span className="text-[11px] uppercase tracking-[0.18em] text-[#6e7f74]">{action.shortcut}</span>
     </button>
   );
 }
@@ -64,20 +64,20 @@ export default function CommandPalette({ open, isAdmin, onClose, onNavigate, onN
 
   return (
     <div className="fixed inset-0 z-[90]">
-      <button type="button" aria-label="Close command palette overlay" onClick={onClose} className="absolute inset-0 bg-black/78 backdrop-blur-sm" />
-      <section className="absolute left-1/2 top-[12vh] w-[min(92vw,720px)] -translate-x-1/2 rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,11,18,0.98)_0%,rgba(10,16,27,0.96)_100%)] p-4 shadow-[0_50px_120px_-40px_rgba(0,0,0,1)]">
-        <div className="flex items-center gap-3 rounded-[24px] border border-white/10 bg-white/[0.04] px-4 py-3">
+      <button type="button" aria-label="Close command palette overlay" onClick={onClose} className="absolute inset-0 bg-[#13261c]/24 backdrop-blur-md" />
+      <section className="absolute left-1/2 top-[12vh] w-[min(92vw,720px)] -translate-x-1/2 rounded-[30px] border border-[#d6ddd0] bg-[linear-gradient(180deg,rgba(255,252,246,0.98)_0%,rgba(248,244,234,0.96)_100%)] p-4 shadow-[0_50px_120px_-50px_rgba(31,47,37,0.36)]">
+        <div className="flex items-center gap-3 rounded-[24px] border border-[#d6ddd0] bg-white/80 px-4 py-3">
           <input
             autoFocus
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Jump anywhere, start a session, or open admin..."
-            className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/38"
+            className="min-w-0 flex-1 bg-transparent text-sm text-[#173324] outline-none placeholder:text-[#728378]"
           />
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-white/72 transition hover:bg-white/[0.1]"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#d6ddd0] bg-white/82 text-[#5b6f65] transition hover:bg-white"
             aria-label="Close command palette"
           >
             <X size={15} />
@@ -97,7 +97,7 @@ export default function CommandPalette({ open, isAdmin, onClose, onNavigate, onN
           ))}
 
           {visibleActions.length === 0 ? (
-            <div className="rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-5 text-sm text-white/52">No matching action yet.</div>
+            <div className="rounded-[22px] border border-[#d6ddd0] bg-white/76 px-4 py-5 text-sm text-[#627267]">No matching action yet.</div>
           ) : null}
         </div>
       </section>

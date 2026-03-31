@@ -106,7 +106,7 @@ export default function AuthShell({ mode, children, footer }) {
             <div className="energy-auth-card animate-page-in w-full p-5 sm:p-6">
               <div className="relative z-10">
                 {children}
-                {footer ? <div className="mt-6 border-t border-white/10 pt-4 text-sm text-white/56">{footer}</div> : null}
+                {footer ? <div className="mt-6 border-t border-[#dde5da] pt-4 text-sm text-[#617469]">{footer}</div> : null}
               </div>
             </div>
           </div>

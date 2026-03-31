@@ -94,7 +94,7 @@ export default function Composer({
               <Paperclip size={13} />
               Attach
             </button>
-            <span className="hidden energy-chip border-white/10 bg-white/[0.05] text-white/62 sm:inline-flex">
+            <span className="hidden energy-chip border-[#d6ddd0] bg-white/76 text-[#627267] sm:inline-flex">
               <Sparkles size={12} />
               Ctrl/Cmd + K
             </span>
@@ -107,7 +107,7 @@ export default function Composer({
             type="button"
             key={option.id}
             onClick={() => setMode(option.id)}
-            className={`min-w-[104px] shrink-0 rounded-[15px] border px-3 py-1.5 text-left transition duration-300 hover:border-white/18 ${
+            className={`min-w-[104px] shrink-0 rounded-[15px] border px-3 py-1.5 text-left transition duration-300 hover:border-[#cad8cd] ${
               mode === option.id ? option.activeClass : option.idleClass
             }`}
           >

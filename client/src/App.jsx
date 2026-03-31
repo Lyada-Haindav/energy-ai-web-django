@@ -618,8 +618,8 @@ export default function App() {
 
   if (isBootstrapping) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[linear-gradient(180deg,#020307_0%,#07101b_100%)] px-4 text-white">
-        <div className="inline-flex items-center gap-3 rounded-[24px] border border-white/10 bg-[linear-gradient(160deg,rgba(11,15,24,0.92)_0%,rgba(10,22,32,0.86)_100%)] px-5 py-4 text-sm text-white/78 shadow-[0_28px_72px_-42px_rgba(0,0,0,1)]">
+      <main className="energy-home-page-clean energy-clean-shell flex min-h-screen items-center justify-center px-4">
+        <div className="inline-flex items-center gap-3 rounded-[24px] border border-[#d6ddd0] bg-[linear-gradient(160deg,rgba(255,252,246,0.96)_0%,rgba(248,244,234,0.92)_100%)] px-5 py-4 text-sm text-[#4b6156] shadow-[0_28px_72px_-48px_rgba(31,47,37,0.24)]">
           <Loader2 size={16} className="animate-spin" />
           Loading Energy AI
         </div>

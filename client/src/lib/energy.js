@@ -3,25 +3,25 @@ export const ENERGY_MODE_OPTIONS = [
     id: "auto",
     label: "Auto Balance",
     hint: "Route by difficulty",
-    activeClass: "border-[#f0deb0] bg-[linear-gradient(135deg,#403116_0%,#6c5320_100%)] text-white shadow-[0_24px_54px_-30px_rgba(108,83,32,0.8)]",
-    idleClass: "border-white/10 bg-white/[0.05] text-[#f3dc9a] hover:bg-white/[0.08]",
-    chipClass: "border-[#e8d299]/18 bg-[#2a2112]/84 text-[#f4dda1]"
+    activeClass: "border-[#e7cf97] bg-[linear-gradient(180deg,#fbf0d3_0%,#efddab_100%)] text-[#6f5821] shadow-[0_22px_44px_-34px_rgba(111,88,33,0.28)]",
+    idleClass: "border-[#d6ddd0] bg-white/76 text-[#7f6630] hover:bg-[#fff9ef]",
+    chipClass: "border-[#e7d4a2] bg-[#fbf1d8] text-[#7b6228]"
   },
   {
     id: "fast",
     label: "Low Energy",
     hint: "Fast and efficient",
-    activeClass: "border-[#95e0bb] bg-[linear-gradient(135deg,#163825_0%,#1f6f48_58%,#2daa72_100%)] text-white shadow-[0_24px_54px_-30px_rgba(29,109,71,0.86)]",
-    idleClass: "border-white/10 bg-white/[0.05] text-[#9be7c0] hover:bg-[#113022]/72",
-    chipClass: "border-[#74d4a3]/18 bg-[#10251a]/84 text-[#a6f0ca]"
+    activeClass: "border-[#c7dfcd] bg-[linear-gradient(180deg,#eff9f1_0%,#ddefe1_100%)] text-[#2e6d4d] shadow-[0_22px_44px_-34px_rgba(46,109,77,0.24)]",
+    idleClass: "border-[#d6ddd0] bg-white/76 text-[#3f7258] hover:bg-[#f5fbf6]",
+    chipClass: "border-[#cfe5d4] bg-[#eef8f0] text-[#2f6d4d]"
   },
   {
     id: "deep",
     label: "High Energy",
     hint: "Deep reasoning",
-    activeClass: "border-[#f1c3b7] bg-[linear-gradient(135deg,#51291f_0%,#944431_100%)] text-white shadow-[0_24px_54px_-30px_rgba(148,68,49,0.82)]",
-    idleClass: "border-white/10 bg-white/[0.05] text-[#f3bbcd] hover:bg-[#311620]/72",
-    chipClass: "border-[#d68ea8]/18 bg-[#26111a]/84 text-[#f8c7d5]"
+    activeClass: "border-[#edd0c7] bg-[linear-gradient(180deg,#fff2ed_0%,#f6ddd5_100%)] text-[#96503f] shadow-[0_22px_44px_-34px_rgba(150,80,63,0.24)]",
+    idleClass: "border-[#d6ddd0] bg-white/76 text-[#9a5d4c] hover:bg-[#fff3ef]",
+    chipClass: "border-[#edd7d0] bg-[#fff2ee] text-[#995949]"
   }
 ];
 

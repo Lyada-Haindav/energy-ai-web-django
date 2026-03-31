@@ -1,3 +1,5 @@
+import { normalizeNaturalLanguageText } from "./textNormalization.js";
+
 export const DEFAULT_WORKSPACE_MODE = "general";
 
 const WORKSPACE_MODES = {
@@ -103,15 +105,15 @@ export function describeWorkspaceModes() {
 }
 
 const MODE_PATTERNS = [
-  { id: "code-review", pattern: /\b(code review|review this|review the|bad patterns?|smells?|regression|find risks?)\b/i },
-  { id: "bug-fix", pattern: /\b(bug|bugs|fix|not working|broken|issue|issues|why .* not|error|errors|failing|failure)\b/i },
+  { id: "code-review", pattern: /\b(code review|review this|review the|check this(?: code| file)?|audit|inspect|bad patterns?|smells?|regression|find risks?|find issues?|find bugs?)\b/i },
+  { id: "performance", pattern: /\b(performance|slow|latency|optimi[sz]e|faster|rendering|bundle size|memory leak|laggy|janky|clunky)\b/i },
+  { id: "a11y", pattern: /\b(accessibility|accessible|a11y|keyboard navigation|screen reader|contrast|focus state)\b/i },
+  { id: "bug-fix", pattern: /\b(bug|bugs|fix|not working|broken|issue|issues|why .* not|not available|not visible|not showing|not loading|not opening|error|errors|failing|failure|wont work|won't work|cant|can't|isnt|isn't)\b/i },
   { id: "tests", pattern: /\b(test|tests|test case|test cases|unit test|integration test|coverage)\b/i },
-  { id: "refactor", pattern: /\b(refactor|cleanup|clean up|restructure|make cleaner|simplify the code)\b/i },
-  { id: "explain-code", pattern: /\b(explain this code|explain the code|walk me through|step by step|how this works|structure of this file)\b/i },
+  { id: "refactor", pattern: /\b(refactor|cleanup|clean up|restructure|make cleaner|simplify the code|make it neat|make this neat|compact this)\b/i },
+  { id: "explain-code", pattern: /\b(explain this code|explain the code|walk me through|step by step|how this works|what does this do|break this down|structure of this file)\b/i },
   { id: "error-log", pattern: /\b(stack trace|traceback|error log|logs|exception|stderr|console error)\b/i },
   { id: "api-contract", pattern: /\b(api contract|request body|response body|endpoint|schema|status code|swagger|openapi)\b/i },
-  { id: "a11y", pattern: /\b(accessibility|a11y|keyboard navigation|screen reader|contrast|focus state)\b/i },
-  { id: "performance", pattern: /\b(performance|slow|latency|optimi[sz]e|faster|rendering|bundle size|memory leak)\b/i },
   { id: "security", pattern: /\b(security|secure|vulnerability|auth review|xss|csrf|injection|token leak|permission)\b/i },
   { id: "stack-detect", pattern: /\b(tech stack|stack detect|which framework|what framework|what stack|what technology|detect stack)\b/i },
   { id: "lint", pattern: /\b(lint|eslint|prettier|format this|style issue|naming issue|clean formatting)\b/i },
@@ -121,7 +123,7 @@ const MODE_PATTERNS = [
 const STACK_TRACE_PATTERN = /\b(?:at\s+[A-Za-z0-9_$./<>]+\s+\(|traceback|exception|error:)\b/i;
 const LOG_FILE_PATTERN = /\.(log|out|err|txt)$/i;
 const CODE_FILE_PATTERN = /\.(c|cc|cpp|cs|css|go|h|hpp|html|java|js|json|jsx|kt|md|php|py|rb|rs|sh|sql|swift|ts|tsx|vue|xml|yaml|yml)$/i;
-const VAGUE_FOLLOWUP_PATTERN = /^(do it|fix it|review it|explain it|improve it|make it better|continue|next|again|here|this one|that one|okay|ok|yes|yeah|yep|sure)$/i;
+const VAGUE_FOLLOWUP_PATTERN = /^(do it|fix it|review it|explain it|improve it|make it better|continue|next|again|here|this one|that one|same file|go on|carry on|keep going|okay|ok|yes|yeah|yep|sure|kk|alr|alright)$/i;
 
 function recentUserTexts(messages = []) {
   return messages
@@ -133,7 +135,7 @@ function recentUserTexts(messages = []) {
 }
 
 export function inferWorkspaceMode({ text = "", attachments = [], messages = [] } = {}) {
-  const normalizedText = String(text || "").trim();
+  const normalizedText = normalizeNaturalLanguageText(text);
   const recentTexts = recentUserTexts(messages);
   const previousMeaningfulText = recentTexts.find((entry) => entry !== normalizedText) || "";
   const combinedText = [normalizedText, previousMeaningfulText].filter(Boolean).join(" ").trim();

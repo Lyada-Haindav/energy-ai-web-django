@@ -6,8 +6,10 @@
 
 :root {
   color-scheme: light;
-  --energy-ink: #122119;
-  --energy-muted: #567064;
+  --energy-ink: #10261d;
+  --energy-muted: #4b6156;
+  --energy-muted-strong: #607267;
+  --energy-soft-text: #6e7f74;
   --energy-line: rgba(17, 33, 25, 0.09);
   --energy-page: #030407;
   --energy-page-deep: #081019;
@@ -28,6 +30,7 @@
 
 html {
   scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
 }
 
 html,
@@ -54,6 +57,9 @@ body {
   background-color: var(--energy-page);
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  color: var(--energy-ink);
 }
 
 #root {
@@ -1447,11 +1453,11 @@ body::after {
   .energy-home-page-clean {
     position: relative;
     background:
-      radial-gradient(circle at 10% 14%, rgba(241, 199, 96, 0.26), transparent 24%),
-      radial-gradient(circle at 84% 14%, rgba(157, 198, 160, 0.22), transparent 26%),
-      radial-gradient(circle at 76% 78%, rgba(238, 171, 121, 0.18), transparent 22%),
-      linear-gradient(180deg, #f8f4eb 0%, #f6f0e4 46%, #f4efe4 100%);
-    color: #10261d;
+      radial-gradient(circle at 10% 14%, rgba(241, 199, 96, 0.3), transparent 24%),
+      radial-gradient(circle at 84% 14%, rgba(157, 198, 160, 0.24), transparent 26%),
+      radial-gradient(circle at 76% 78%, rgba(238, 171, 121, 0.22), transparent 22%),
+      linear-gradient(180deg, #faf6ee 0%, #f7f1e5 46%, #f3ecdf 100%);
+    color: var(--energy-ink);
   }
 
   .energy-home-page-clean .energy-space-stars {
@@ -1509,7 +1515,7 @@ body::after {
 
   .energy-home-clean-nav {
     border: 1px solid rgba(203, 214, 198, 0.96);
-    background: rgba(255, 252, 246, 0.52);
+    background: rgba(255, 252, 246, 0.72);
     box-shadow: 0 28px 60px -48px rgba(31, 47, 37, 0.28);
     backdrop-filter: blur(12px);
   }
@@ -1520,11 +1526,11 @@ body::after {
     gap: 0.55rem;
     border-radius: 999px;
     border: 1px solid rgba(219, 222, 208, 0.95);
-    background: rgba(255, 250, 240, 0.68);
+    background: rgba(255, 250, 240, 0.82);
     padding: 0.72rem 1rem;
     font-size: 0.78rem;
     font-weight: 700;
-    color: #7b6330;
+    color: #715921;
     box-shadow: 0 18px 40px -34px rgba(31, 47, 37, 0.22);
     backdrop-filter: blur(8px);
   }
@@ -1553,21 +1559,19 @@ body::after {
   }
 
   .energy-home-primary-button:hover {
-    transform: translateY(-2px);
     box-shadow: 0 32px 62px -34px rgba(16, 38, 29, 0.54);
   }
 
   .energy-home-secondary-button {
     border: 1px solid rgba(209, 218, 205, 0.95);
-    background: rgba(255, 255, 255, 0.66);
+    background: rgba(255, 255, 255, 0.8);
     color: #173324;
     box-shadow: 0 18px 40px -34px rgba(31, 47, 37, 0.18);
     backdrop-filter: blur(8px);
   }
 
   .energy-home-secondary-button:hover {
-    transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.94);
   }
 
   .energy-home-page-clean .energy-home-copy {
@@ -1742,7 +1746,6 @@ body::after {
   }
 
   .energy-home-clean-feature:hover {
-    transform: translateY(-2px);
     border-color: rgba(164, 188, 170, 0.98);
     box-shadow: 0 32px 64px -46px rgba(31, 47, 37, 0.32);
   }
@@ -1769,12 +1772,12 @@ body::after {
   .energy-clean-shell .energy-panel-dark,
   .energy-clean-shell .energy-auth-card {
     border-color: rgba(214, 221, 208, 0.96);
-    background: linear-gradient(160deg, rgba(255, 252, 246, 0.9) 0%, rgba(248, 244, 234, 0.86) 56%, rgba(243, 238, 228, 0.84) 100%) !important;
+    background: linear-gradient(160deg, rgba(255, 252, 246, 0.96) 0%, rgba(248, 244, 234, 0.93) 56%, rgba(243, 238, 228, 0.92) 100%) !important;
     box-shadow:
-      0 30px 70px -52px rgba(31, 47, 37, 0.22),
-      0 0 0 1px rgba(255, 255, 255, 0.42);
+      0 28px 64px -52px rgba(31, 47, 37, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.54);
     backdrop-filter: blur(12px);
-    color: #173324;
+    color: var(--energy-ink);
   }
 
   .energy-clean-shell .energy-panel::before,
@@ -1802,13 +1805,13 @@ body::after {
   }
 
   .energy-clean-shell .energy-eyebrow {
-    color: #8a968c;
+    color: var(--energy-soft-text);
   }
 
   .energy-clean-shell .energy-chip {
     border-color: rgba(214, 221, 208, 0.96);
-    background: rgba(255, 255, 255, 0.72);
-    color: #5d7064;
+    background: rgba(255, 250, 243, 0.86);
+    color: var(--energy-muted);
     backdrop-filter: blur(8px);
   }
 
@@ -1824,29 +1827,59 @@ body::after {
 
   .energy-clean-shell .energy-space-secondary {
     border-color: rgba(214, 221, 208, 0.96);
-    background: rgba(255, 255, 255, 0.72);
-    color: #173324;
+    background: rgba(255, 250, 243, 0.86);
+    color: var(--energy-ink);
     box-shadow: 0 18px 40px -34px rgba(31, 47, 37, 0.18);
   }
 
   .energy-clean-shell .energy-input,
   .energy-clean-shell .energy-auth-input {
     border-color: rgba(214, 221, 208, 0.96);
-    background: rgba(255, 255, 255, 0.82);
-    color: #173324;
+    background: rgba(255, 252, 247, 0.92);
+    color: var(--energy-ink);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
   }
 
   .energy-clean-shell .energy-input::placeholder,
   .energy-clean-shell .energy-auth-input::placeholder {
-    color: #8a968c;
+    color: var(--energy-soft-text);
   }
 
   .energy-clean-shell .energy-input:focus,
   .energy-clean-shell .energy-auth-input:focus {
     border-color: rgba(166, 196, 172, 0.98);
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 253, 249, 0.96);
     box-shadow: 0 0 0 4px rgba(183, 209, 189, 0.26);
+  }
+
+  .energy-clean-shell .text-\[\#5d7064\],
+  .energy-clean-shell .text-\[\#5b6f65\],
+  .energy-clean-shell .text-\[\#5f7064\],
+  .energy-clean-shell .text-\[\#516457\] {
+    color: var(--energy-muted) !important;
+  }
+
+  .energy-clean-shell .text-\[\#7d8d7e\],
+  .energy-clean-shell .text-\[\#627568\] {
+    color: var(--energy-muted-strong) !important;
+  }
+
+  .energy-clean-shell .text-\[\#8a968c\] {
+    color: var(--energy-soft-text) !important;
+  }
+
+  .energy-clean-shell .text-\[\#7c6840\] {
+    color: #73591d !important;
+  }
+
+  .energy-home-page-clean .text-\[\#7d8d7e\],
+  .energy-home-page-clean .text-\[\#627568\] {
+    color: var(--energy-muted-strong) !important;
+  }
+
+  .energy-home-page-clean .text-\[\#5f7064\],
+  .energy-home-page-clean .text-\[\#516457\] {
+    color: var(--energy-muted) !important;
   }
 
   .energy-auth-stage {

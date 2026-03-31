@@ -145,41 +145,12 @@ export default function HomePage({ isAuthenticated, user, onNavigate }) {
   }
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const pointerFine = window.matchMedia("(pointer: fine)");
-
-    const updateMotionMode = () => {
-      motionEnabledRef.current = !prefersReducedMotion.matches && pointerFine.matches;
-      if (!motionEnabledRef.current) {
-        currentRef.current = { x: 0.5, y: 0.34 };
-        targetRef.current = { x: 0.5, y: 0.34 };
-        applyMotionStyles({ x: 0.5, y: 0.34 });
-        if (frameRef.current) {
-          cancelAnimationFrame(frameRef.current);
-          frameRef.current = 0;
-        }
-        return;
-      }
-
-      resetParallax();
-    };
-
-    updateMotionMode();
-    const handleWindowPointerMove = (event) => {
-      updateParallax(event.clientX, event.clientY);
-    };
-    const handleWindowPointerLeave = () => resetParallax();
-
-    window.addEventListener("resize", updateMotionMode);
-    window.addEventListener("pointermove", handleWindowPointerMove, { passive: true });
-    window.addEventListener("blur", handleWindowPointerLeave);
-    document.addEventListener("mouseleave", handleWindowPointerLeave);
+    motionEnabledRef.current = false;
+    currentRef.current = { x: 0.5, y: 0.34 };
+    targetRef.current = { x: 0.5, y: 0.34 };
+    applyMotionStyles({ x: 0.5, y: 0.34 });
 
     return () => {
-      window.removeEventListener("resize", updateMotionMode);
-      window.removeEventListener("pointermove", handleWindowPointerMove);
-      window.removeEventListener("blur", handleWindowPointerLeave);
-      document.removeEventListener("mouseleave", handleWindowPointerLeave);
       if (frameRef.current) {
         cancelAnimationFrame(frameRef.current);
       }
