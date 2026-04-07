@@ -1,0 +1,503 @@
+.energy-brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.energy-brand-lockup img {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 18px 30px rgba(79, 70, 229, 0.2));
+}
+
+.energy-brand-copy {
+  min-width: 0;
+}
+
+.energy-brand-copy-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.energy-brand-copy-subtitle {
+  margin-top: 0.15rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #6f8075;
+}
+
+.energy-hidden-file-input {
+  display: none;
+}
+
+.energy-js-chat-layout {
+  display: grid;
+  min-height: calc(100vh - 5.2rem);
+  gap: 0.75rem;
+}
+
+.energy-js-main-column {
+  display: grid;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+}
+
+.energy-js-scroll-region {
+  min-height: 0;
+  overflow: auto;
+}
+
+.energy-js-sidebar-desktop {
+  display: none;
+}
+
+.energy-js-chat-window,
+.energy-js-composer-form,
+.energy-js-message-card,
+.energy-session-card,
+.energy-sidebar-shell,
+.energy-app-topbar,
+.energy-js-command-palette {
+  contain: layout paint style;
+}
+
+.energy-js-message-stack {
+  contain: layout paint;
+}
+
+.energy-js-scroll-region {
+  will-change: scroll-position;
+}
+
+.energy-js-message-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 220px;
+  box-shadow: 0 16px 34px -30px rgba(31, 47, 37, 0.14) !important;
+}
+
+.energy-js-message-card:hover {
+  transform: none !important;
+}
+
+.energy-chat-shell > .absolute,
+.energy-sidebar-shell > .absolute {
+  display: none !important;
+}
+
+.energy-chat-shell,
+.energy-chat-composer,
+.energy-sidebar-shell,
+.energy-app-topbar,
+.energy-js-command-palette {
+  box-shadow: 0 20px 42px -34px rgba(31, 47, 37, 0.16) !important;
+}
+
+.energy-js-message-actions {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.energy-js-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid #d6ddd0;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 0.5rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #5b6f65;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.energy-js-action-button:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.energy-js-action-button.is-active {
+  border-color: #cddbcf;
+  background: #f3f9f4;
+  color: #173324;
+}
+
+.energy-js-code-block {
+  margin: 0.8rem 0;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid #d6ddd0;
+  background: #fffdf8;
+  color: #173324;
+  box-shadow: 0 24px 54px -42px rgba(31, 47, 37, 0.16);
+}
+
+.energy-js-code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e4e9df;
+  padding: 0.8rem 1rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a968c;
+}
+
+.energy-js-code-body {
+  margin: 0;
+  overflow-x: auto;
+  padding: 1rem;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.energy-js-empty-state {
+  width: 100%;
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.energy-js-banner {
+  margin-bottom: 1rem;
+}
+
+.energy-js-analytics-grid,
+.energy-js-admin-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.energy-js-benchmark-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.energy-js-bar-track {
+  height: 0.75rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf2ef;
+}
+
+.energy-js-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #9fe0bc 0%, #2f8f63 100%);
+}
+
+.energy-js-bar-fill.deep {
+  background: linear-gradient(90deg, #f0b39f 0%, #c95a3c 100%);
+}
+
+.energy-js-stat-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.energy-js-attachment-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.energy-js-attachment-chip {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.energy-js-link-button {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+}
+
+.energy-js-link-button:hover {
+  opacity: 0.88;
+}
+
+.energy-js-auth-note {
+  margin-top: 0.75rem;
+}
+
+.energy-js-toolbar-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.energy-js-composer-toolbar,
+.energy-js-toolbar-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.energy-js-mode-stack {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.energy-js-admin-actions,
+.energy-js-home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  overflow: hidden !important;
+}
+
+.energy-static-page {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.energy-page-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.energy-app-content-static {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+  overflow: hidden;
+  width: 100%;
+  max-width: none !important;
+  box-sizing: border-box;
+  padding-top: calc(4.55rem + 0.85rem) !important;
+  padding-right: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+  padding-left: 0.5rem !important;
+}
+
+.energy-app-shell-gap {
+  box-sizing: border-box;
+}
+
+.energy-app-content-static > .energy-js-banner,
+.energy-app-content-static > .energy-panel,
+.energy-app-content-static > .energy-js-chat-layout,
+.energy-app-content-static > section,
+.energy-app-content-static > div {
+  flex-shrink: 0;
+}
+
+.energy-app-content-static > .energy-js-chat-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.energy-js-scroll-region {
+  scroll-behavior: auto;
+  overscroll-behavior: contain;
+}
+
+.energy-js-chat-layout,
+.energy-js-main-column,
+.energy-js-sidebar-desktop,
+.energy-sidebar-shell {
+  min-height: 0;
+}
+
+.energy-js-chat-layout {
+  height: 100%;
+  overflow: hidden;
+}
+
+.energy-js-main-column,
+.energy-js-sidebar-desktop {
+  height: 100%;
+}
+
+.energy-static-page > header,
+.energy-static-page > .fixed,
+.energy-static-page > .sticky {
+  flex-shrink: 0;
+}
+
+.energy-space-stars,
+.energy-space-nebula,
+.energy-home-haze,
+.energy-home-depth-field,
+.energy-space-cursor-aura,
+.energy-orbit-ring,
+.energy-home-preview-backdrop {
+  display: none !important;
+}
+
+.energy-clean-shell > .pointer-events-none.absolute.inset-0 {
+  display: none !important;
+}
+
+.animate-page-in,
+.animate-rise,
+.animate-float,
+.animate-float-wide,
+.animate-drift,
+.animate-blink,
+.animate-draw-line,
+.energy-chart-path,
+.energy-meter-fill {
+  animation: none !important;
+}
+
+.energy-panel,
+.energy-home-clean-nav,
+.energy-auth-card,
+.energy-app-topbar,
+.energy-chat-shell,
+.energy-chat-composer,
+.energy-sidebar-shell,
+.energy-js-command-palette {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.energy-app-content-static.energy-app-shell-gap {
+  padding-top: calc(4.55rem + 0.9rem) !important;
+}
+
+.energy-page-scroll.energy-app-shell-gap {
+  padding-top: calc(4.55rem + 0.9rem) !important;
+  padding-right: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+  padding-left: 0.75rem !important;
+}
+
+.energy-js-action-button,
+.energy-home-primary-button,
+.energy-home-secondary-button,
+.energy-session-card,
+.energy-chip,
+.energy-js-scroll-latest,
+.energy-js-command-item,
+.energy-home-clean-feature,
+.energy-home-preview-mode,
+.energy-panel,
+.energy-sidebar-shell,
+.energy-chat-shell,
+.energy-chat-composer {
+  transition: none !important;
+}
+
+.energy-js-action-button:hover,
+.energy-home-primary-button:hover,
+.energy-home-secondary-button:hover,
+.energy-session-card:hover,
+.energy-chip:hover,
+.energy-js-scroll-latest:hover,
+.energy-js-command-item:hover,
+.energy-home-clean-feature:hover,
+.energy-home-preview-mode:hover {
+  transform: none !important;
+}
+
+@media (min-width: 1024px) {
+  .energy-js-chat-layout {
+    grid-template-columns: 248px minmax(0, 1fr);
+  }
+
+  .energy-js-sidebar-desktop {
+    display: block;
+    min-height: 0;
+  }
+
+  .energy-js-analytics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .energy-js-admin-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .energy-js-benchmark-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .energy-app-content-static {
+    height: 100svh;
+    min-height: 100svh;
+  }
+
+  .energy-static-page {
+    height: 100svh;
+    min-height: 100svh;
+  }
+}
+
+@media (min-width: 768px) {
+  .energy-app-content-static {
+    padding-top: 0.8rem !important;
+    padding-right: 0.9rem !important;
+    padding-bottom: 0.9rem !important;
+    padding-left: 0.9rem !important;
+  }
+
+  .energy-app-content-static.energy-app-shell-gap,
+  .energy-page-scroll.energy-app-shell-gap {
+    padding-top: 1rem !important;
+    padding-right: 1rem !important;
+    padding-bottom: 1rem !important;
+    padding-left: 1rem !important;
+  }
+
+  .energy-js-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .energy-app-content-static {
+    padding-right: 1.35rem !important;
+    padding-left: 1.35rem !important;
+  }
+
+  .energy-page-scroll.energy-app-shell-gap {
+    padding-right: 1.35rem !important;
+    padding-left: 1.35rem !important;
+  }
+
+  .energy-js-stat-grid.energy-js-stat-grid--four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,18 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#020307" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'api/energy-logo.svg' %}" />
+    <title>Energy AI | Low-Energy Speed, High-Energy Depth</title>
+    <link rel="stylesheet" href="{% static 'api/frontend.bundle.css' %}" />
+    <link rel="stylesheet" href="{% static 'api/frontend.css' %}" />
+  </head>
+  <body>
+    <div id="app"></div>
+    {{ initial_path|json_script:"energy-initial-path" }}
+    <script src="{% static 'api/frontend.js' %}"></script>
+  </body>
+</html>

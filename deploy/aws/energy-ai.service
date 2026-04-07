@@ -1,0 +1,17 @@
+[Unit]
+Description=Energy AI Django service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/home/ec2-user/energy-ai/app/django_server
+EnvironmentFile=/home/ec2-user/energy-ai/app/server/.env
+ExecStart=/home/ec2-user/energy-ai/.venv/bin/gunicorn django_server.wsgi:application --bind 0.0.0.0:8787 --workers 2 --timeout 120
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

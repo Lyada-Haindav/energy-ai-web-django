@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import gzip
 import json
 import math
 import random
@@ -102,7 +103,11 @@ ASSISTANT_FIT_KEYWORDS = {
 
 
 def read_jsonl(path: Path):
-  with path.open("r", encoding="utf-8") as file:
+  if path.suffix == ".gz":
+    file_handle = gzip.open(path, "rt", encoding="utf-8")
+  else:
+    file_handle = path.open("r", encoding="utf-8")
+  with file_handle as file:
     for line in file:
       raw = line.strip()
       if not raw:
@@ -209,8 +214,18 @@ def complexity_score(text: str) -> int:
     "authorization",
     "session",
     "token",
+    "jwt",
+    "cookie",
+    "cookies",
     "traceback",
     "exception",
+    "logging",
+    "log",
+    "rate limit",
+    "rate limiting",
+    "backend",
+    "observability",
+    "monitoring",
     "responsive",
     "accessibility",
     "performance",
@@ -220,6 +235,11 @@ def complexity_score(text: str) -> int:
     "reason",
     "scalable",
     "production",
+    "deploy",
+    "deployment",
+    "mongodb",
+    "mongo",
+    "atlas",
     "subarray",
     "substring",
     "graph",

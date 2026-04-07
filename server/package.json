@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "migrate:mongo": "node scripts/migrate-file-to-mongo.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

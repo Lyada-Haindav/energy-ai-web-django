@@ -6,6 +6,8 @@ node_modules/
 __pycache__/
 *.pyc
 .venv/
+django_server/db.sqlite3
+django_server/staticfiles/
 
 # Build output
 client/dist/
@@ -17,9 +19,15 @@ training/data/
 .env
 server/.env
 server/data/app-data.json
+server/data/backups/
 server/model-artifacts/own/deep.json
 server/model-artifacts/own/fast.json
 server/model-artifacts/own/router.json
+deploy/aws/*.pem
+deploy/aws/*.env
+!deploy/aws/*.env.example
+deploy/aws/*.tar.gz
+deploy/aws/stage/
 
 # OS
 .DS_Store

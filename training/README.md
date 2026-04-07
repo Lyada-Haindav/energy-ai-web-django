@@ -123,7 +123,72 @@ python3 scripts/train_own_models.py \
   --max-fast-to-deep-ratio 8.0
 ```
 
-## 2) Prepare dataset
+## 1e) Download Large Public Coding Datasets
+
+This repo can also build a much larger multilingual coding corpus from APPS, HumanEvalPack, CodeSearchNet, and CommitPackFT. Because local disk is tight on this machine, use gzip output by default:
+
+```bash
+python3 scripts/download_public_coding_datasets.py \
+  --out-dir data/public_coding \
+  --compress \
+  --max-apps 6000 \
+  --max-humanevalpack-per-language 500 \
+  --max-codesearchnet-per-language 12000 \
+  --max-commitpack-per-language 5000
+```
+
+Default multilingual coverage includes:
+- `Python`
+- `JavaScript`
+- `TypeScript`
+- `Java`
+- `Go`
+- `Rust`
+- `C++`
+- `C#`
+- `PHP`
+- `Ruby`
+- `Swift`
+- `Kotlin`
+- `Shell`
+- `SQL`
+- `HTML`
+- `CSS`
+
+Outputs:
+- `data/public_coding/apps_python.jsonl.gz`
+- `data/public_coding/humanevalpack_polyglot.jsonl.gz`
+- `data/public_coding/codesearchnet_polyglot.jsonl.gz`
+- `data/public_coding/commitpackft_polyglot.jsonl.gz`
+- `data/public_coding/merged_public_coding.jsonl.gz`
+- `data/public_coding/metadata.json`
+
+You can then train directly from the compressed corpus:
+
+```bash
+python3 scripts/train_own_models.py \
+  --input data/public_coding/merged_public_coding.jsonl.gz \
+  --out-dir checkpoints/own \
+  --deep-threshold 3 \
+  --max-pairs 120000 \
+  --max-duplicate-prompts 6 \
+  --max-fast-to-deep-ratio 6.0
+```
+
+## 2) Build a larger curated corpus
+
+The older `data/processed/*.jsonl` files in this repo were tiny starter outputs. Use the advanced corpus builder to mix the bundled seed data, local feedback, public rows, public coding rows, and synthetic shards into one larger raw training set:
+
+```bash
+python3 scripts/build_advanced_dataset.py
+```
+
+Default output:
+
+- `data/processed/advanced/raw_large_mix.jsonl`
+- `data/processed/advanced/raw_large_mix.metadata.json`
+
+## 3) Prepare dataset
 
 Input dataset format (`.jsonl`):
 
@@ -134,45 +199,69 @@ Input dataset format (`.jsonl`):
 Run:
 
 ```bash
-python scripts/prepare_data.py --input data/raw_chats.jsonl --out-dir data/processed
+python3 scripts/prepare_data.py \
+  --input data/processed/advanced/raw_large_mix.jsonl \
+  --out-dir data/processed/advanced \
+  --deep-threshold 4 \
+  --max-history-turns 6 \
+  --min-fit-score 0 \
+  --max-duplicate-prompts 3 \
+  --max-fast-to-deep-ratio 3.5
 ```
 
 Outputs:
-- `data/processed/fast_sft.jsonl`
-- `data/processed/deep_sft.jsonl`
-- `data/processed/router_train.jsonl`
+- `data/processed/advanced/fast_sft.jsonl`
+- `data/processed/advanced/deep_sft.jsonl`
+- `data/processed/advanced/router_train.jsonl`
+- `data/processed/advanced/summary.json`
 
-## 3) Train fast model
+With the current bundled corpus, this larger profile produces a much bigger trainable set than the old starter files.
 
-```bash
-python scripts/train_fast_model.py \
-  --config config/fast_model.json \
-  --train-file data/processed/fast_sft.jsonl
-```
-
-## 4) Train deep model
+## 4) Train fast model
 
 ```bash
-python scripts/train_deep_model.py \
-  --config config/deep_model.json \
-  --train-file data/processed/deep_sft.jsonl
+python3 scripts/train_fast_model.py \
+  --config config/fast_model_large.json \
+  --train-file data/processed/advanced/fast_sft.jsonl
 ```
 
-## 5) Train router model
+## 5) Train deep model
 
 ```bash
-python scripts/train_router_model.py \
-  --config config/router_model.json \
-  --train-file data/processed/router_train.jsonl
+python3 scripts/train_deep_model.py \
+  --config config/deep_model_large.json \
+  --train-file data/processed/advanced/deep_sft.jsonl
 ```
 
-## 6) Evaluate end-to-end stack
+## 6) Train router model
+
+```bash
+python3 scripts/train_router_model.py \
+  --config config/router_model_large.json \
+  --train-file data/processed/advanced/router_train.jsonl
+```
+
+## 7) One-command advanced pipeline
+
+Run the full large-corpus preparation flow from one command:
+
+```bash
+python3 scripts/train_advanced_stack.py
+```
+
+You can skip the actual heavy model training steps when you only want to rebuild the datasets:
+
+```bash
+python3 scripts/train_advanced_stack.py --skip-router --skip-fast --skip-deep
+```
+
+## 8) Evaluate end-to-end stack
 
 ```bash
 python scripts/evaluate_stack.py --server-url http://localhost:8787
 ```
 
-## 7) Serve real local checkpoints
+## 9) Serve real local checkpoints
 
 After training the router, fast, and deep checkpoints, serve them with:
 
@@ -195,4 +284,4 @@ This path uses your own fine-tuned checkpoints instead of the lightweight JSON `
 - Start with open-weight checkpoints and LoRA/QLoRA.
 - Keep router small (1B to 3B or sequence classifier) for low energy use.
 - Use your own conversations for iterative alignment.
-- Data quality matters more than raw volume. Prefer curated instruction-style pairs over noisy generative dumps.
+- Data quality still matters more than raw volume, which is why the advanced pipeline filters low-signal rows and caps prompt duplication before training.

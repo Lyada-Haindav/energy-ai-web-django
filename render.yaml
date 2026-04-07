@@ -1,16 +1,46 @@
 services:
   - type: web
     name: energy-ai-web
-    runtime: node
+    runtime: python
     plan: free
     disk:
       name: energy-ai-data
       mountPath: /var/data
       sizeGB: 1
-    buildCommand: npm install --prefix client --include=dev && npm install --prefix server && npm run build --prefix client
-    startCommand: NODE_ENV=production npm start --prefix server
+    buildCommand: pip install -r django_server/requirements.txt && python django_server/manage.py collectstatic --noinput
+    startCommand: python django_server/manage.py migrate --noinput && gunicorn --chdir django_server django_server.wsgi:application --bind 0.0.0.0:$PORT
     healthCheckPath: /api/health
     envVars:
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: .onrender.com
+      - key: APP_DATA_DIR
+        value: /var/data
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB_NAME
+        sync: false
+      - key: MONGODB_COLLECTION
+        value: appData
+      - key: MONGODB_DOCUMENT_ID
+        value: energy-ai
+      - key: MONGODB_REQUIRED
+        value: "true"
+      - key: MONGODB_USERS_COLLECTION
+        value: users
+      - key: MONGODB_SESSIONS_COLLECTION
+        value: authSessions
+      - key: MONGODB_CHATS_COLLECTION
+        value: chatSessions
+      - key: MONGODB_TRAINING_APPROVED_COLLECTION
+        value: trainingApproved
+      - key: MONGODB_TRAINING_CANDIDATE_COLLECTION
+        value: trainingCandidates
+      - key: MONGODB_TRAINING_REJECTED_COLLECTION
+        value: trainingRejected
+      - key: MONGODB_EVALUATION_COLLECTION
+        value: evaluationRuns
       - key: OWN_MODELS_DIR
         value: server/model-artifacts/own
       - key: ROUTER_PROVIDER
@@ -25,10 +55,6 @@ services:
         value: energy-low-own-v1
       - key: DEEP_MODEL
         value: energy-high-own-v1
-      - key: MONGODB_URI
-        sync: false
-      - key: APP_DATA_DIR
-        value: /var/data
       - key: BREVO_API_KEY
         sync: false
       - key: EMAIL_FROM

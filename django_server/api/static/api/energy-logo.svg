@@ -1,0 +1,27 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="energy-shell" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B5CF6" />
+      <stop offset="0.48" stop-color="#4F46E5" />
+      <stop offset="1" stop-color="#06B6D4" />
+    </linearGradient>
+    <radialGradient id="energy-glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(32 32) rotate(90) scale(24)">
+      <stop stop-color="#67E8F9" stop-opacity="0.95" />
+      <stop offset="0.42" stop-color="#4F46E5" stop-opacity="0.34" />
+      <stop offset="1" stop-color="#020617" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="energy-stroke" x1="18" y1="18" x2="46" y2="46" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C4B5FD" />
+      <stop offset="1" stop-color="#67E8F9" />
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="52" height="52" rx="18" fill="#050816" />
+  <rect x="7" y="7" width="50" height="50" rx="17" stroke="url(#energy-shell)" stroke-opacity="0.65" stroke-width="1.5" />
+  <circle cx="32" cy="32" r="18" fill="url(#energy-glow)" />
+  <circle cx="32" cy="32" r="13.5" stroke="url(#energy-stroke)" stroke-opacity="0.46" stroke-width="1.5" />
+  <circle cx="32" cy="32" r="7.5" stroke="url(#energy-stroke)" stroke-opacity="0.22" stroke-width="1.25" />
+  <path d="M33.5 16L21.5 34.8H30.8L29.2 48L42.5 28.8H33.7L33.5 16Z" fill="url(#energy-shell)" />
+  <path d="M33.5 16L21.5 34.8H30.8L29.2 48L42.5 28.8H33.7L33.5 16Z" stroke="white" stroke-opacity="0.35" stroke-linejoin="round" />
+  <circle cx="47" cy="17" r="2.5" fill="#67E8F9" fill-opacity="0.9" />
+  <circle cx="18" cy="46" r="2" fill="#8B5CF6" fill-opacity="0.9" />
+</svg>

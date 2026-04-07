@@ -1,77 +1,43 @@
 #!/usr/bin/env python3
 import argparse
 import json
-import time
-from urllib import request
+import os
+import sys
+from pathlib import Path
 
 
-EVAL_PROMPTS = [
-  "Write a two line summary of reinforcement learning.",
-  "Analyze tradeoffs between retrieval augmented generation and full fine-tuning for private enterprise data.",
-  "Give me a short JavaScript function that debounces input and explain complexity.",
-  "What is LoRA in one paragraph?",
-  "Solve subarray sum equals k in Python with complexity.",
-  "A contest problem gives a graph with non-negative weights. Find shortest path from node 1 to node n. Explain the right algorithm."
-]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DJANGO_ROOT = PROJECT_ROOT / "django_server"
+if str(DJANGO_ROOT) not in sys.path:
+  sys.path.insert(0, str(DJANGO_ROOT))
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_server.settings")
 
-def run_prompt(server_url, prompt):
-  payload = json.dumps({
-    "mode": "auto",
-    "messages": [{"role": "user", "content": prompt}]
-  }).encode("utf-8")
+import django
 
-  req = request.Request(
-    f"{server_url}/api/chat",
-    data=payload,
-    headers={"Content-Type": "application/json"},
-    method="POST"
-  )
+django.setup()
 
-  start = time.perf_counter()
-  output = ""
-  route = None
-  energy = None
-
-  with request.urlopen(req, timeout=120) as resp:
-    for raw_line in resp:
-      line = raw_line.decode("utf-8").strip()
-      if not line:
-        continue
-
-      evt = json.loads(line)
-      if evt.get("type") == "start":
-        route = evt.get("model")
-      elif evt.get("type") == "token":
-        output += evt.get("token", "")
-      elif evt.get("type") == "final":
-        energy = evt.get("energyScore")
-
-  latency_ms = int((time.perf_counter() - start) * 1000)
-  return {
-    "prompt": prompt,
-    "latency_ms": latency_ms,
-    "route_model": route,
-    "energy_score": energy,
-    "output_chars": len(output)
-  }
+from api.evaluation import EVALUATION_CASES, EVALUATION_SUITE_VERSION, evaluate_case, summarize_evaluation
 
 
 def main():
-  parser = argparse.ArgumentParser(description="Evaluate routing behavior and latency.")
-  parser.add_argument("--server-url", default="http://localhost:8787")
+  parser = argparse.ArgumentParser(description="Evaluate Energy AI routing, web grounding, and coding quality.")
+  parser.add_argument("--write-json", default="", help="Optional output path for the evaluation summary JSON")
   args = parser.parse_args()
 
-  rows = [run_prompt(args.server_url, prompt) for prompt in EVAL_PROMPTS]
-  avg_latency = sum(r["latency_ms"] for r in rows) / len(rows)
-
+  rows = [evaluate_case(case) for case in EVALUATION_CASES]
+  summary = summarize_evaluation(rows)
   summary = {
-    "evaluations": rows,
-    "average_latency_ms": round(avg_latency, 1),
-    "num_prompts": len(rows)
+    "suiteVersion": EVALUATION_SUITE_VERSION,
+    "summary": summary,
+    "cases": rows,
   }
+  if args.write_json:
+    output_path = Path(args.write_json)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 
-  print(json.dumps(summary, indent=2))
+  print(json.dumps(summary, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":

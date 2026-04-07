@@ -1,25 +1,27 @@
 {
   "inputs": [
-    "training/data/energy_alignment_seed.jsonl",
-    "training/data/contest_alignment_seed.jsonl",
-    "training/data/chat_behavior_seed.jsonl",
-    "training/data/coding_followup_seed.jsonl",
-    "training/data/prompt_understanding_seed.jsonl",
+    "training/data/processed/advanced/raw_large_mix.jsonl",
+    "training/data/advanced_webapp_seed.jsonl",
+    "training/data/polyglot_coding_seed.jsonl",
     "training/data/coding_master_seed.jsonl",
-    "training/data/public/merged_public_chat.jsonl",
+    "training/data/coding_followup_seed.jsonl",
+    "training/data/contest_alignment_seed.jsonl",
+    "training/data/energy_alignment_seed.jsonl",
+    "training/data/prompt_understanding_seed.jsonl",
+    "training/data/chat_behavior_seed.jsonl",
     "training/data/local/user_live_pairs.jsonl"
   ],
-  "output_dir": "server/model-artifacts/own",
+  "output_dir": "training/checkpoints/own",
   "deep_threshold": 3,
-  "max_pairs": 20000,
-  "max_duplicate_prompts": 6,
-  "max_fast_to_deep_ratio": 5.0,
+  "max_pairs": 30000,
+  "max_duplicate_prompts": 5,
+  "max_fast_to_deep_ratio": 4.0,
   "model_names": {
     "router": "energy-router-own-v1",
     "fast": "energy-low-own-v1",
     "deep": "energy-high-own-v1"
   },
-  "router_examples": 60858,
-  "fast_examples": 50715,
-  "deep_examples": 10143
+  "router_examples": 60370,
+  "fast_examples": 48296,
+  "deep_examples": 12074
 }

@@ -1,0 +1,4 @@
+Django==4.2.7
+gunicorn==22.0.0
+pymongo==4.6.0
+whitenoise==6.7.0
