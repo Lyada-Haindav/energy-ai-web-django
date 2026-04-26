@@ -2049,11 +2049,11 @@
           <section class="energy-home-hero-grid relative grid flex-1 items-center gap-10 overflow-hidden px-4 pb-10 pt-8 lg:grid-cols-[0.96fr_1.04fr] lg:gap-14">
             <div class="energy-home-copy max-w-2xl text-left">
               <div class="energy-home-clean-badge animate-rise">${renderIcon("sparkles", 14)}<span>One AI system. Three energy levels.</span></div>
-              <h1 class="mt-8 animate-rise energy-stagger-1 font-display text-[3.35rem] font-bold tracking-[-0.08em] text-[#10261d] sm:text-7xl lg:text-[6.15rem]">
+              <h1 class="energy-home-hero-title mt-8 animate-rise energy-stagger-1 font-display text-[3.35rem] font-bold tracking-[-0.08em] text-[#10261d] sm:text-7xl lg:text-[6.15rem]">
                 <span class="block">The right answer at the</span>
                 <span class="block text-[#132b21]">right speed.</span>
               </h1>
-              <p class="mt-6 max-w-xl animate-rise energy-stagger-2 text-base leading-8 text-[#5f7064] sm:text-[1.36rem]">
+              <p class="energy-home-hero-lead mt-6 max-w-xl animate-rise energy-stagger-2 text-base leading-8 text-[#5f7064] sm:text-[1.36rem]">
                 Energy AI answers simple prompts in Low-Energy mode, switches to High-Energy mode for harder reasoning, and uses Auto Balance to decide when speed matters more than depth.
               </p>
               <div class="mt-10 energy-js-home-actions">
@@ -2143,12 +2143,12 @@
           <div class="absolute bottom-[12%] left-[24%] h-56 w-56 rounded-full bg-[#f0b98f]/14 blur-3xl"></div>
         </div>
         <section class="energy-page-scroll relative mx-auto flex min-h-screen w-full max-w-[1440px] items-center px-4 py-5 sm:px-6">
-          <div class="grid w-full gap-6 lg:grid-cols-[1.05fr_460px]">
+          <div class="energy-auth-layout grid w-full gap-6 lg:grid-cols-[1.05fr_460px]">
             <div class="animate-page-in">
               <div class="energy-home-clean-nav inline-flex rounded-full px-4 py-2">${renderBrand(false)}</div>
               <div class="mt-8 max-w-3xl">
                 <div class="energy-home-clean-badge">${escapeHtml(copy.badge)}</div>
-                <h1 class="mt-6 font-display text-4xl font-bold tracking-[-0.06em] text-[#13291f] sm:text-6xl">${escapeHtml(copy.title)}</h1>
+                <h1 class="energy-auth-display-title mt-6 font-display text-4xl font-bold tracking-[-0.06em] text-[#13291f] sm:text-6xl">${escapeHtml(copy.title)}</h1>
                 <p class="mt-4 text-base leading-8 text-[#5d7064] sm:text-lg">${escapeHtml(copy.description)}</p>
               </div>
               <div class="mt-10 flex flex-wrap gap-3">
@@ -2201,7 +2201,7 @@
         <main class="energy-home-page-clean energy-clean-shell energy-static-page relative min-h-screen overflow-hidden">
           <div class="energy-space-stars opacity-90"></div>
           <section class="energy-page-scroll relative mx-auto flex min-h-screen w-full max-w-[1440px] items-center px-4 py-5 sm:px-6">
-            <div class="grid w-full gap-6 lg:grid-cols-[1.05fr_460px]">
+            <div class="energy-auth-layout grid w-full gap-6 lg:grid-cols-[1.05fr_460px]">
               <div class="animate-page-in">
                 <div class="energy-home-clean-nav inline-flex rounded-full px-4 py-2">${renderBrand(false)}</div>
               </div>
@@ -2235,7 +2235,7 @@
       <main class="energy-home-page-clean energy-clean-shell energy-static-page relative min-h-screen overflow-hidden">
         <div class="energy-space-stars opacity-90"></div>
         <section class="energy-page-scroll relative mx-auto flex min-h-screen w-full max-w-[1440px] items-center px-4 py-5 sm:px-6">
-          <div class="grid w-full gap-6 lg:grid-cols-[1.05fr_460px]">
+          <div class="energy-auth-layout grid w-full gap-6 lg:grid-cols-[1.05fr_460px]">
             <div class="animate-page-in">
               <div class="energy-home-clean-nav inline-flex rounded-full px-4 py-2">${renderBrand(false)}</div>
             </div>
@@ -3046,7 +3046,7 @@
             </div>
           </header>
 
-          <section class="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <section class="energy-admin-hero-grid mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
             <div class="energy-panel rounded-[34px] p-6">
               <p class="energy-eyebrow">Admin Console</p>
               <h1 class="mt-4 font-display text-4xl font-bold tracking-[-0.06em] text-[#173324] sm:text-5xl">Control training, health, and quality from one place.</h1>
